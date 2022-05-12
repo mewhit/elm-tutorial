@@ -2,17 +2,19 @@ module Main exposing (..)
 
 import Browser
 import Browser.Dom exposing (Viewport, getViewport)
+import Editor.Data.CompileResult exposing (hasFail)
 import Editor.Data.Registry.Defaults as Defaults
 import Editor.Data.Version exposing (Version(..))
 import Editor.Page.Editor as Editor
-import Excercises.Excercises as Excercises
 import Html exposing (Html, a, button, div, i, nav, span, text)
 import Html.Attributes as Attr exposing (class, disabled, href)
 import Html.Events exposing (onClick)
 import Json.Encode as En exposing (Value)
 import Random
+import RemoteData exposing (RemoteData(..))
 import ScrollTo as ScrollTo
 import Task
+import UI.UI as UI
 
 
 type alias Model =
@@ -61,7 +63,7 @@ type Msg
     = RandomNumber ( Int, Int )
     | EditorMsg Editor.Msg
     | ScrollToMsg ScrollTo.Msg
-    | ScrollToId ScrollId
+    | ScrollToId UI.Id
     | HandleViewport Viewport
 
 
@@ -98,10 +100,10 @@ update msg model =
             ( { model | viewport = Just viewport }, Cmd.none )
 
 
-scrollTo : ScrollId -> Cmd Msg
+scrollTo : UI.Id -> Cmd Msg
 scrollTo id =
     case id of
-        Id id_ ->
+        UI.Id id_ ->
             ScrollTo.scrollTo id_ |> Cmd.map ScrollToMsg
 
 
@@ -113,7 +115,7 @@ view model =
                 [ text "loading" ]
 
             Just _ ->
-                [ page introId
+                [ UI.page introId
                     [ Html.h1 [ class "text-7xl text-pink-900" ] [ text "Elm Tutorial" ]
                     , div []
                         [ Html.p [ class "text-lg text-white" ] [ text "If the indicator is ", span [ class "text-red-500 " ] [ text "red" ], text ", your code or return is wrong" ]
@@ -127,43 +129,22 @@ view model =
                 ]
 
 
-type ScrollId
-    = Id String
-
-
-toScrollId : String -> ScrollId
-toScrollId id =
-    Id id
-
-
-toString : ScrollId -> String
-toString id =
-    case id of
-        Id id_ ->
-            id_
-
-
-introId : ScrollId
+introId : UI.Id
 introId =
-    toScrollId "intro"
+    UI.toId "intro"
 
 
-excerciseOneId : ScrollId
+excerciseOneId : UI.Id
 excerciseOneId =
-    toScrollId "excercise-one"
+    UI.toId "excercise-one"
 
 
-excerciseTwoId : ScrollId
+excerciseTwoId : UI.Id
 excerciseTwoId =
-    toScrollId "excercise-two"
+    UI.toId "excercise-two"
 
 
-page : ScrollId -> List (Html Msg) -> Html Msg
-page id elements =
-    div [ Attr.id <| toString id, class "flex flex-col justify-evenly items-center h-screen w-full" ] elements
-
-
-navButton : ScrollId -> String -> Bool -> Html Msg
+navButton : UI.Id -> String -> Bool -> Html Msg
 navButton id_ text_ disabled =
     if disabled then
         Html.button [ class "bg-blue-300 h-16 pl-5 pr-5 rounded text-xl opacity-50", Attr.disabled disabled, onClick <| ScrollToId id_ ] [ text text_ ]
@@ -177,24 +158,8 @@ navButton id_ text_ disabled =
 -- ++ excerciseThree model.randomPair
 
 
-pastille : String -> String -> Html Msg
-pastille color text_ =
-    span [ class <| color ++ " text-lg p-2 pr-10 pl-10 rounded" ] [ text text_ ]
-
-
 excerciseOne : Model -> Html Msg
 excerciseOne model =
-    let
-        result =
-            Excercises.one
-
-        successIndicator =
-            if result == 0 then
-                [ pastille "bg-green-500" "Succeed", navButton excerciseTwoId "Next" False ]
-
-            else
-                [ pastille "bg-red-500" "Fail", navButton excerciseTwoId "Next" True ]
-    in
     [ navButton introId "Previous" False
     , Html.h3 [ class "text-3xl text-cyan-900" ] [ text "Excercise 1" ]
     , Html.p [ class "text-lg text-yellow-900" ]
@@ -206,9 +171,19 @@ excerciseOne model =
         , span [ class "text-blue-900" ] [ text "return is always 0" ]
         ]
     , Editor.view model.editor |> Html.map EditorMsg
+    , case model.editor.editor.result of
+        Success result ->
+            if hasFail result then
+                UI.pill "bg-red-600" "Fail"
+
+            else
+                UI.pill "bg-green-600" "Success"
+
+        _ ->
+            UI.pill "bg-yellow-600" "Waiting"
+    , navButton excerciseTwoId "Next" (model.editor.editor.result |> RemoteData.map hasFail |> RemoteData.withDefault True)
     ]
-        ++ successIndicator
-        |> page excerciseOneId
+        |> UI.page excerciseOneId
 
 
 
@@ -220,41 +195,26 @@ excerciseTwo ( min, max ) =
     let
         initial =
             List.range min max
-
-        result =
-            initial
-                |> List.map Excercises.two
-
-        display =
-            if result == initial then
-                [ pastille "bg-green-500" "Succeed" ]
-
-            else
-                [ pastille "bg-red-500" "Fail"
-                , span [ class "text-red-500" ] [ text <| (result |> List.map String.fromInt |> String.join ", ") ++ " must be " ++ (initial |> List.map String.fromInt |> String.join ", ") ]
-                ]
     in
     [ navButton excerciseOneId "Previous" False
     , Html.p [ class "text-lg text-yellow-900" ] [ text "This function should have one Int parameter and return this same Int, no matter what!!!" ]
     ]
-        ++ display
-        |> page excerciseTwoId
+        |> UI.page excerciseTwoId
 
 
-excerciseThree : ( Int, Int ) -> List (Html Msg)
-excerciseThree ( min, max ) =
-    let
-        result =
-            Excercises.three min max
 
-        display =
-            if result == (min + max) then
-                [ pastille "bg-green-500" "Succeed" ]
-
-            else
-                [ pastille "bg-red-500" "Fail"
-                , span [ class "text-red-500" ] [ text <| String.fromInt result ++ " must be " ++ ((min + max) |> String.fromInt) ]
-                ]
-    in
-    Html.p [ class "text-lg text-yellow-900" ] [ text "This function should have Two Int parameter and return this some of them" ]
-        :: display
+-- excerciseThree : ( Int, Int ) -> List (Html Msg)
+-- excerciseThree ( min, max ) =
+--     let
+--         result =
+--             Excercises.three min max
+--         display =
+--             if result == (min + max) then
+--                 [ UI.pill "bg-green-500" "Succeed" ]
+--             else
+--                 [ UI.pill "bg-red-500" "Fail"
+--                 , span [ class "text-red-500" ] [ text <| String.fromInt result ++ " must be " ++ ((min + max) |> String.fromInt) ]
+--                 ]
+--     in
+--     Html.p [ class "text-lg text-yellow-900" ] [ text "This function should have Two Int parameter and return this some of them" ]
+--         :: display

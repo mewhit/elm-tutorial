@@ -5,7 +5,6 @@ window.addEventListener('load', function () {
     main.ports.submitSource.subscribe(function (source) {
         var editorNode = document.getElementById('editor');
         var codeNode = document.getElementById('code');
-        console.log(source, editorNode)
         codeNode.value = source;
         editorNode.submit();
     });

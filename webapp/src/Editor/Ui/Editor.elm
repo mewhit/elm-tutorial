@@ -7,6 +7,7 @@ Relies on code-editor.js being present.
 -}
 
 import Dict exposing (Dict)
+import Editor.Data.CompileResult as CompileResult
 import Editor.Data.Deps as Deps
 import Editor.Data.Header as Header
 import Editor.Data.Hint as Hint
@@ -22,9 +23,11 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (on, onClick, onMouseLeave, onMouseOver)
 import Html.Lazy exposing (..)
-import Http
 import Json.Decode as D
+import Json.Decode.Pipeline as D
 import Json.Encode as E
+import RemoteData exposing (RemoteData(..), WebData)
+import RemoteData.Http as Http
 
 
 
@@ -53,6 +56,7 @@ type alias Model =
 
     -- , dependencies : DepsInfo
     , selection : Maybe Error.Region
+    , result : WebData CompileResult.CompileResult
     }
 
 
@@ -83,6 +87,7 @@ init source =
 
             -- , dependencies = Loading
             , selection = Nothing
+            , result = NotAsked
             }
     in
     case Header.parse source of
@@ -112,6 +117,7 @@ type Msg
     | OnSave String (Maybe Error.Region)
     | OnHint (Maybe String)
     | OnCompile
+    | HandleResult (WebData CompileResult.CompileResult)
       -- | GotDepsInfo (Result Http.Error Deps.Info)
     | GotSuccess
     | GotErrors E.Value
@@ -145,7 +151,11 @@ update msg model status =
         OnCompile ->
             ( updateImports model
             , Status.compiling status
-            , submitSource model.source
+            , Cmd.batch
+                [ postSource model.source
+
+                -- , submitSource model.source
+                ]
             )
 
         -- GotDepsInfo result ->
@@ -160,6 +170,9 @@ update msg model status =
         --             , status
         --             , Cmd.none
         --             )
+        HandleResult result ->
+            ( { model | result = result }, Status.success, Cmd.none )
+
         GotSuccess ->
             ( model, Status.success, Cmd.none )
 
@@ -175,6 +188,16 @@ updateImports model =
 
         Just ( imports, importEnd ) ->
             model
+
+
+postSource : String -> Cmd Msg
+postSource source =
+    Http.post "http://localhost:3000/excercise-1"
+        HandleResult
+        CompileResult.decode
+        (E.object
+            [ ( "code", E.string source ) ]
+        )
 
 
 

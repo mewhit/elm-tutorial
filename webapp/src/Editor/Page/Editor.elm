@@ -4,6 +4,7 @@ import Browser
 import Browser.Events
 import Dict exposing (Dict)
 import Editor.Data.Analytics as Analytics
+import Editor.Data.CompileResult as CompileResult
 import Editor.Data.Deps as Deps
 import Editor.Data.Header as Header
 import Editor.Data.Hint as Hint
@@ -26,6 +27,7 @@ import Html.Lazy exposing (..)
 import Http
 import Json.Decode as D
 import Json.Encode as E
+import RemoteData exposing (RemoteData(..))
 import Svg exposing (svg, use)
 import Svg.Attributes as SA exposing (xlinkHref)
 
@@ -333,19 +335,41 @@ view model =
 
                 Nothing ->
                     text ""
-            , iframe
-                [ id "output"
-                , name "output"
-                , case getProblems model of
-                    Just _ ->
-                        style "display" "none"
+            , case model.editor.result of
+                Success result ->
+                    case result of
+                        CompileResult.Error err ->
+                            Html.pre [] [ text err.error ]
 
-                    Nothing ->
-                        style "display" "block"
+                        CompileResult.Steps steps ->
+                            steps
+                                |> List.map
+                                    (\step ->
+                                        case step of
+                                            CompileResult.RunStart _ ->
+                                                text "Start"
 
-                -- , src ("/examples/_compiled/" ++ model.name ++ ".html")
-                ]
-                []
+                                            CompileResult.TestCompleted r ->
+                                                case r of
+                                                    CompileResult.TestFail _ ->
+                                                        text "Fail"
+
+                                                    CompileResult.TestPass _ ->
+                                                        text "Pass"
+
+                                            CompileResult.RunComplete _ ->
+                                                text "Completed"
+                                    )
+                                |> div []
+
+                NotAsked ->
+                    text "wait compilation"
+
+                Loading ->
+                    text "loader"
+
+                Failure _ ->
+                    text "Fail"
             ]
         ]
 
