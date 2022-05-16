@@ -28,6 +28,7 @@ import Json.Decode.Pipeline as D
 import Json.Encode as E
 import RemoteData exposing (RemoteData(..), WebData)
 import RemoteData.Http as Http
+import UI.UI as UI
 
 
 
@@ -224,23 +225,21 @@ subscriptions _ =
 -- VIEW
 
 
-viewEditor : Solution.Solution -> Bool -> Model -> Html Msg
-viewEditor solution isLight model =
+viewEditor : UI.Id -> Solution.Solution -> Bool -> Model -> Html Msg
+viewEditor id_ solution isLight model =
     Html.form
-        [ id "editor"
-        , action "http://localhost:3000/excercise-1"
-        , method "post"
-        , enctype "multipart/form-data"
+        [ UI.toAttr id_
+        , class "editor"
         , target "output"
         ]
-        [ textarea [ id "code", name "code", style "display" "none" ] []
+        [ textarea [ id <| UI.toString id_ ++ "code", name "code", style "display" "none" ] []
         , case solution.hash of
             Just hash ->
                 viewSolutionInput solution hash
 
             Nothing ->
                 viewSolutionInput solution ""
-        , lazy4 viewEditor_ model.source model.selection isLight model.importEnd
+        , lazy5 viewEditor_ id_ model.source model.selection isLight model.importEnd
         ]
 
 
@@ -261,10 +260,12 @@ viewSolutionInput solution hash =
         ]
 
 
-viewEditor_ : String -> Maybe Error.Region -> Bool -> Int -> Html Msg
-viewEditor_ source selection lights importEnd =
+viewEditor_ : UI.Id -> String -> Maybe Error.Region -> Bool -> Int -> Html Msg
+viewEditor_ id_ source selection lights importEnd =
     node "code-editor"
-        [ property "source" (E.string source)
+        [ property "identifier" <| E.string <| UI.toString id_ ++ "code-editor"
+        , attribute "id" <| UI.toString id_ ++ "code-editor"
+        , property "source" (E.string source)
         , property "theme" (E.string "dark")
         , property "importEnd" (E.int importEnd)
         , property "selection" <|

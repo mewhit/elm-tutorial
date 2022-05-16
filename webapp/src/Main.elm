@@ -122,10 +122,10 @@ view model =
                         , Html.p [ class "text-lg text-white" ] [ text "If the indicator is ", span [ class "text-yellow-500 " ] [ text "yellow" ], text ", maybe place to optimization" ]
                         , Html.p [ class "text-lg text-white" ] [ text "If the indicator is ", span [ class "text-green-500 " ] [ text "green" ], text ", everything is right" ]
                         ]
-                    , navButton excerciseOneId "Start With Synthase" False
+                    , navButton excerciseOneScrollId "Start With Synthase" False
                     ]
                 , excerciseOne model
-                , excerciseTwo model.randomPair
+                , excerciseTwo model
                 ]
 
 
@@ -134,14 +134,24 @@ introId =
     UI.toId "intro"
 
 
-excerciseOneId : UI.Id
-excerciseOneId =
-    UI.toId "excercise-one"
+excerciseOneScrollId : UI.Id
+excerciseOneScrollId =
+    UI.toId "excercise-scroll-one"
 
 
-excerciseTwoId : UI.Id
-excerciseTwoId =
-    UI.toId "excercise-two"
+excerciseTwoScrollId : UI.Id
+excerciseTwoScrollId =
+    UI.toId "excercise-scroll-two"
+
+
+excerciseOneEditorId : UI.Id
+excerciseOneEditorId =
+    UI.toId "excercise-editor-one"
+
+
+excerciseTwoEditorId : UI.Id
+excerciseTwoEditorId =
+    UI.toId "excercise-editor-two"
 
 
 navButton : UI.Id -> String -> Bool -> Html Msg
@@ -170,7 +180,7 @@ excerciseOne model =
         , text " and the "
         , span [ class "text-blue-900" ] [ text "return is always 0" ]
         ]
-    , Editor.view model.editor |> Html.map EditorMsg
+    , Editor.view excerciseOneEditorId model.editor |> Html.map EditorMsg
     , case model.editor.editor.result of
         Success result ->
             if hasFail result then
@@ -181,25 +191,29 @@ excerciseOne model =
 
         _ ->
             UI.pill "bg-yellow-600" "Waiting"
-    , navButton excerciseTwoId "Next" (model.editor.editor.result |> RemoteData.map hasFail |> RemoteData.withDefault True)
+    , navButton excerciseTwoScrollId "Next" (model.editor.editor.result |> RemoteData.map hasFail |> RemoteData.withDefault True)
     ]
-        |> UI.page excerciseOneId
+        |> UI.page excerciseOneScrollId
 
 
 
 -- ++ [ CodeEditor.view [ CodeEditor.id "elm" ] ]
 
 
-excerciseTwo : ( Int, Int ) -> Html Msg
-excerciseTwo ( min, max ) =
-    let
-        initial =
-            List.range min max
-    in
-    [ navButton excerciseOneId "Previous" False
-    , Html.p [ class "text-lg text-yellow-900" ] [ text "This function should have one Int parameter and return this same Int, no matter what!!!" ]
+excerciseTwo : Model -> Html Msg
+excerciseTwo model =
+    [ navButton excerciseOneScrollId "Previous" False
+    , Html.p [ class "text-lg text-yellow-900" ]
+        [ text "Create simple function named "
+        , span [ class "text-blue-900" ] [ text "copy" ]
+        , text " that take "
+        , span [ class "text-blue-900" ] [ text "1 Int arguments" ]
+        , text " and the "
+        , span [ class "text-blue-900" ] [ text "return identical Int" ]
+        ]
+    , Editor.view excerciseTwoEditorId model.editor |> Html.map EditorMsg
     ]
-        |> UI.page excerciseTwoId
+        |> UI.page excerciseTwoScrollId
 
 
 

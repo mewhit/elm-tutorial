@@ -107,7 +107,7 @@ h3 {
   flex-direction: row;
 }
 
-#editor {
+.editor {
   margin: 0;
   width: 0;
   min-width: 0;

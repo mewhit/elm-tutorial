@@ -3,6 +3,9 @@ import { execSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 import { Readable, Stream } from 'stream';
+import { ElmService } from './elm/elm.service';
+import * as Either from 'fp-ts/Either'
+import { TestResult } from './elm/test-result.model';
 
 const newGuid = () => {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
@@ -57,7 +60,10 @@ const createTempsDir = () => {
 
 @Injectable()
 export class AppService {
-  compile(str: string): [string, string] {
+
+  constructor(private readonly elmService: ElmService) { }
+
+  compile(str: string): Either.Either<string, readonly TestResult[]> {
     createTempsDir()
     const dirPath = `temps/${newGuid()}`
 
@@ -70,23 +76,11 @@ export class AppService {
 
       const excercisePath = `${dirPath}/excercise-1`
 
-      try {
-        execSync(`cd ${excercisePath} && elm make ./src/Main.elm`)
-      } catch (err) {
-        fs.writeFileSync(`${excercisePath}/index.html`, `<p style="white-space: pre-wrap">${err.stderr.toString()}</p>`)
-      }
+      return this.elmService.test(excercisePath)
 
-      try {
-        const result = execSync(`cd ${excercisePath} && elm-test`)
-        fs.appendFileSync(`${excercisePath}/index.html`, `<p style="white-space: pre-wrap">${result.toString()}</p>`)
-      } catch (err) {
-        fs.writeFileSync(`${excercisePath}/index.html`, `<p style="white-space: pre-wrap">${err.stderr.toString()}</p>`)
-      }
-
-      return [excercisePath, `${excercisePath}/index.html`]
     } catch (err) {
       fs.rmdirSync(`${dirPath}`, { recursive: true })
-      return err;
+      throw err;
     }
   }
 

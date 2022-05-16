@@ -30,6 +30,7 @@ import Json.Encode as E
 import RemoteData exposing (RemoteData(..))
 import Svg exposing (svg, use)
 import Svg.Attributes as SA exposing (xlinkHref)
+import UI.UI as UI
 
 
 
@@ -277,8 +278,8 @@ subscriptions model =
 -- VIEW
 
 
-view : Model -> Html Msg
-view model =
+view : UI.Id -> Model -> Html Msg
+view id_ model =
     let
         packageStyles =
             if model.isPackageUiOpen then
@@ -300,42 +301,11 @@ view model =
         [ Editor.Ui.ColumnDivider.view OnDividerMsg
             model.window
             model.divider
-            [ Editor.Ui.Package.view packageStyles model.packageUi
-                |> Html.map OnPackageMsg
-            , Editor.Ui.Editor.viewEditor (Editor.Ui.Package.getSolution model.packageUi) model.isLight model.editor
+            [ Editor.Ui.Editor.viewEditor id_ (Editor.Ui.Package.getSolution model.packageUi) model.isLight model.editor
                 |> Html.map OnEditorMsg
-            , case getProblems model of
-                Just problems ->
-                    div
-                        [ id "problems-carousel"
-                        , if Editor.Ui.ColumnDivider.isRightMost model.window model.divider then
-                            style "transform" "translateX(0)"
-
-                          else
-                            style "transform" "translateX(100%)"
-                        ]
-                        [ if model.areProblemsMini then
-                            text ""
-
-                          else
-                            lazy viewProblemPopup problems
-                        ]
-
-                Nothing ->
-                    text ""
             , viewNavigation model
             ]
-            [ case getProblems model of
-                Just problems ->
-                    if Editor.Ui.ColumnDivider.isRightMost model.window model.divider then
-                        text ""
-
-                    else
-                        lazy viewProblemList problems
-
-                Nothing ->
-                    text ""
-            , case model.editor.result of
+            [ case model.editor.result of
                 Success result ->
                     case result of
                         CompileResult.Error err ->

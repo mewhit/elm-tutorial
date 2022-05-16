@@ -4,7 +4,7 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "client": "parcel src/index.html",
+    "client": "parcel src/index.html --port 4040",
     "make": "elm make src/Main.elm --output=./public/main.js",
     "css": "npx tailwindcss-cli@latest build ./src/index.tailwind.css -o ./public/tailwind.css",
     "test": "elm test"

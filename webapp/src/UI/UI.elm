@@ -1,6 +1,6 @@
-module UI.UI exposing (Id(..), page, pill, toId)
+module UI.UI exposing (Id(..), page, pill, toAttr, toId, toString)
 
-import Html exposing (Html, div, span, text)
+import Html exposing (Attribute, Html, div, span, text)
 import Html.Attributes exposing (class, id)
 
 
@@ -11,6 +11,11 @@ type Id
 toId : String -> Id
 toId id_ =
     Id id_
+
+
+toAttr : Id -> Attribute msg
+toAttr id_ =
+    id <| toString id_
 
 
 toString : Id -> String
