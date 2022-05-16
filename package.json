@@ -1,0 +1,15 @@
+{
+  "name": "elm-tutorial-repo",
+  "version": "1.0.0",
+  "main": "none",
+  "repository": "https://github.com/mewhit/elm-tutorial.git",
+  "author": "Mike Whittom <mikewhittom27@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "build": "cd webapp && yarn build"
+  },
+  "dependencies": {
+    "http": "^0.0.1-security",
+    "node-static": "^0.7.11"
+  }
+}

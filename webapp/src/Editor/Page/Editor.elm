@@ -71,6 +71,7 @@ getProblems model =
 
 type alias Flags =
     { original : String
+    , domain : String
     , name : String
     , width : Int
     , height : Int
@@ -79,26 +80,16 @@ type alias Flags =
     }
 
 
-decodeFlags : D.Decoder Flags
-decodeFlags =
-    D.map6 Flags
-        (D.field "original" D.string)
-        (D.field "name" D.string)
-        (D.field "width" D.int)
-        (D.field "height" D.int)
-        (D.at [ "dependencies", "direct" ] Defaults.decode)
-        (D.at [ "dependencies", "indirect" ] Defaults.decode)
 
-
-defaultFlags : Flags
-defaultFlags =
-    { original = "original"
-    , name = "original"
-    , width = 1000
-    , height = 700
-    , direct = Defaults.direct
-    , indirect = Defaults.indirect
-    }
+-- decodeFlags : D.Decoder Flags
+-- decodeFlags =
+--     D.map6 Flags
+--         (D.field "original" D.string)
+--         (D.field "name" D.string)
+--         (D.field "width" D.int)
+--         (D.field "height" D.int)
+--         (D.at [ "dependencies", "direct" ] Defaults.decode)
+--         (D.at [ "dependencies", "indirect" ] Defaults.decode)
 
 
 init : Flags -> ( Model, Cmd Msg )
@@ -107,7 +98,7 @@ init flags =
         -- flags =
         --     Result.withDefault defaultFlags (D.decodeValue decodeFlags flagsRaw)
         ( editor, editorCmd ) =
-            Editor.Ui.Editor.init flags.original
+            Editor.Ui.Editor.init flags.domain flags.original
 
         ( packageUi, packageUiCmd ) =
             Editor.Ui.Package.init flags.direct flags.indirect

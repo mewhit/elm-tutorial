@@ -1,11 +1,10 @@
 {
   "name": "elm-tutorial",
   "version": "1.0.0",
-  "main": "index.js",
   "license": "MIT",
   "scripts": {
     "client": "parcel src/index.html --port 4040",
-    "make": "elm make src/Main.elm --output=./public/main.js",
+    "build": "parcel build src/index.html --dist-dir build",
     "css": "npx tailwindcss-cli@latest build ./src/index.tailwind.css -o ./public/tailwind.css",
     "test": "elm test"
   },
@@ -22,6 +21,7 @@
     "buffer": "^6.0.3",
     "elm": "^0.19.1-5",
     "postcss": "^8.4.13",
-    "postcss-import": "^14.1.0"
+    "postcss-import": "^14.1.0",
+    "process": "^0.11.10"
   }
 }

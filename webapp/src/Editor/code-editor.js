@@ -136,7 +136,7 @@ var debounce = function (func) {
   };
 };
 
-const _editors: { [id: string]: any } = {};
+const _editors = {};
 
 export class CodeEditorV2 extends HTMLElement {
 
@@ -155,7 +155,7 @@ export class CodeEditorV2 extends HTMLElement {
   connectedCallback() { this.init(); }
   static get observedAttributes() { return ['identifier']; }
 
-  private init() {
+  init() {
     var sendChangeEvent = debounce((function () {
       var previous = this._source;
       this._source = _editors[this.getAttribute("id")].getValue();

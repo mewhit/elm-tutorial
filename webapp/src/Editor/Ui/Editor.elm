@@ -49,7 +49,8 @@ port gotSuccess : (() -> msg) -> Sub msg
 
 
 type alias Model =
-    { source : String
+    { domain : String
+    , source : String
     , hint : Maybe String
     , hintTable : Hint.Table
     , imports : Header.Imports
@@ -76,11 +77,12 @@ setSelection region model =
 -- INIT
 
 
-init : String -> ( Model, Cmd Msg )
-init source =
+init : String -> String -> ( Model, Cmd Msg )
+init domain source =
     let
         defaults =
             { source = source
+            , domain = domain
             , hint = Nothing
             , hintTable = Hint.defaultTable
             , imports = Header.defaultImports
@@ -153,7 +155,7 @@ update msg model status =
             ( updateImports model
             , Status.compiling status
             , Cmd.batch
-                [ postSource model.source
+                [ postSource model.domain model.source
 
                 -- , submitSource model.source
                 ]
@@ -191,9 +193,9 @@ updateImports model =
             model
 
 
-postSource : String -> Cmd Msg
-postSource source =
-    Http.post "http://localhost:3000/excercise-1"
+postSource : String -> String -> Cmd Msg
+postSource domain source =
+    Http.post (domain ++ "/excercise-1")
         HandleResult
         CompileResult.decode
         (E.object

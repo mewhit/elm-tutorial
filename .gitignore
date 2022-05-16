@@ -3,3 +3,6 @@ node_modules
 dist
 elm-stuff
 temps
+build
+.env.production
+deploy.json

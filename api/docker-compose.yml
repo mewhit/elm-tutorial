@@ -1,0 +1,10 @@
+version: '3.8'
+
+services:
+  elm-tutorial-api:
+    image: elm-tutorial-api:1.0.0
+    build:
+        context: .
+    ports:
+        - 3000:3000
+

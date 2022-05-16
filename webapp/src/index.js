@@ -1,9 +1,8 @@
 import { Elm } from "./Main.elm";
-import('./Editor/code-editor')
 
 
 window.addEventListener('load', function () {
-    main = Elm.Main.init({ node: document.getElementById("root") });
+    const main = Elm.Main.init({ node: document.getElementById("root"), flags: { domain: process.env.DOMAIN } });
     main.ports.submitSource.subscribe(function (source, id) {
         var editorNode = document.getElementById(id);
         var codeNode = document.getElementById(`${id}code`);
@@ -14,5 +13,6 @@ window.addEventListener('load', function () {
 
 
 document.addEventListener("DOMContentLoaded", () => {
+    import('./Editor/code-editor')
     import('./Editor/column-divider')
 });

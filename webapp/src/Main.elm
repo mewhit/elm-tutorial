@@ -18,30 +18,32 @@ import UI.UI as UI
 
 
 type alias Model =
-    { randomPair : ( Int, Int )
+    { domain : String
+    , randomPair : ( Int, Int )
     , editor : Editor.Model
     , scrollTo : ScrollTo.State
     , viewport : Maybe Viewport
     }
 
 
-main : Program () Model Msg
+main : Program { domain : String } Model Msg
 main =
-    let
-        ( editorModel, editorCmd ) =
-            Editor.init
-                { original = ""
-                , name = ""
-                , width = 250
-                , height = 250
-                , direct = Defaults.direct
-                , indirect = Defaults.indirect
-                }
-    in
     Browser.element
         { init =
-            \_ ->
-                ( { randomPair = ( 0, 10 ), editor = editorModel, scrollTo = ScrollTo.init, viewport = Nothing }
+            \{ domain } ->
+                let
+                    ( editorModel, editorCmd ) =
+                        Editor.init
+                            { original = ""
+                            , name = ""
+                            , domain = domain
+                            , width = 250
+                            , height = 250
+                            , direct = Defaults.direct
+                            , indirect = Defaults.indirect
+                            }
+                in
+                ( { domain = domain, randomPair = ( 0, 10 ), editor = editorModel, scrollTo = ScrollTo.init, viewport = Nothing }
                 , Cmd.batch
                     [ Random.generate RandomNumber (Random.pair (Random.int 0 4) (Random.int 5 10))
                     , Cmd.batch [ Task.perform HandleViewport getViewport, Cmd.map EditorMsg editorCmd ]
