@@ -2,11 +2,12 @@ module Main exposing (..)
 
 import Browser
 import Browser.Dom exposing (Viewport, getViewport)
+import Dict
 import Editor.Data.CompileResult exposing (hasFail)
 import Editor.Data.Registry.Defaults as Defaults
 import Editor.Data.Version exposing (Version(..))
 import Editor.Page.Editor as Editor
-import Html exposing (Attribute, Html, a, button, div, i, nav, span, text)
+import Html exposing (Html, button, div, i, nav, span, text)
 import Html.Attributes as Attr exposing (class, disabled, href)
 import Html.Events exposing (onClick)
 import Json.Encode as En exposing (Value)
@@ -136,10 +137,13 @@ view model =
                         , p [ Attr.class "text-blue-300 text-center" ] [ Html.a [ Attr.href "https://guide.elm-lang.org/core_language.html", Attr.target "_blank" ] [ text "The Elm Guide" ] ]
                         , p [ Attr.class "text-blue-300 text-center" ] [ Html.a [ Attr.href "https://package.elm-lang.org/packages/elm/core/latest/", Attr.target "_blank" ] [ text "Core Package" ] ]
                         ]
-                    , navButton excerciseOneScrollId "Start With Synthase" False
+                    , navButton (toScrollId excerciseOneId) "Start With Synthase" False
                     ]
                 , excerciseOne model
                 , excerciseTwo model
+                , excerciseThree model
+
+                -- , excerciseFour model
                 ]
 
 
@@ -148,14 +152,9 @@ introId =
     UI.toId "intro"
 
 
-excerciseOneScrollId : UI.Id
-excerciseOneScrollId =
-    UI.toId "excercise-scroll-one"
-
-
-excerciseTwoScrollId : UI.Id
-excerciseTwoScrollId =
-    UI.toId "excercise-scroll-two"
+toScrollId : UI.Id -> UI.Id
+toScrollId =
+    UI.toString >> (++) "excercise-scroll" >> UI.toId
 
 
 excerciseOneId : UI.Id
@@ -166,6 +165,16 @@ excerciseOneId =
 excerciseTwoId : UI.Id
 excerciseTwoId =
     UI.toId "2"
+
+
+excerciseThreeId : UI.Id
+excerciseThreeId =
+    UI.toId "3"
+
+
+excerciseFourId : UI.Id
+excerciseFourId =
+    UI.toId "4"
 
 
 navButton : UI.Id -> String -> Bool -> Html Msg
@@ -195,8 +204,8 @@ excerciseOne model =
         , span [ class "text-blue-900" ] [ text "return is always 0" ]
         ]
     , Editor.view excerciseOneId model.editor |> Html.map EditorMsg
-    , case model.editor.editor.result of
-        Success result ->
+    , case Dict.get (UI.toString excerciseOneId) model.editor.editor.result of
+        Just (Success result) ->
             if hasFail result then
                 UI.pill "bg-red-600" "Fail"
 
@@ -205,9 +214,9 @@ excerciseOne model =
 
         _ ->
             UI.pill "bg-yellow-600" "Waiting"
-    , navButton excerciseTwoScrollId "Next" (model.editor.editor.result |> RemoteData.map hasFail |> RemoteData.withDefault True)
+    , navButton (toScrollId excerciseTwoId) "Next" (model.editor.editor.result |> Dict.get (UI.toString excerciseOneId) |> Maybe.withDefault NotAsked |> RemoteData.map hasFail |> RemoteData.withDefault True)
     ]
-        |> UI.page excerciseOneScrollId
+        |> UI.page (toScrollId excerciseOneId)
 
 
 
@@ -216,7 +225,7 @@ excerciseOne model =
 
 excerciseTwo : Model -> Html Msg
 excerciseTwo model =
-    [ navButton excerciseOneScrollId "Previous" False
+    [ navButton (toScrollId excerciseOneId) "Previous" False
     , Html.p [ class "text-lg text-yellow-900" ]
         [ text "Create simple function named "
         , span [ class "text-blue-900" ] [ text "copy" ]
@@ -226,23 +235,72 @@ excerciseTwo model =
         , span [ class "text-blue-900" ] [ text "return identical Int" ]
         ]
     , Editor.view excerciseTwoId model.editor |> Html.map EditorMsg
+    , case Dict.get (UI.toString excerciseTwoId) model.editor.editor.result of
+        Just (Success result) ->
+            if hasFail result then
+                UI.pill "bg-red-600" "Fail"
+
+            else
+                UI.pill "bg-green-600" "Success"
+
+        _ ->
+            UI.pill "bg-yellow-600" "Waiting"
+    , navButton (toScrollId excerciseThreeId) "Next" (model.editor.editor.result |> Dict.get (UI.toString excerciseTwoId) |> Maybe.withDefault NotAsked |> RemoteData.map hasFail |> RemoteData.withDefault True)
     ]
-        |> UI.page excerciseTwoScrollId
+        |> UI.page (toScrollId excerciseTwoId)
 
 
+excerciseThree : Model -> Html Msg
+excerciseThree model =
+    [ navButton (toScrollId excerciseTwoId) "Previous" False
+    , Html.p [ class "text-lg text-yellow-900" ]
+        [ text "Last one of creating simple function. Create simple function named "
+        , span [ class "text-blue-900" ] [ text "add" ]
+        , text " that take "
+        , span [ class "text-blue-900" ] [ text "2 Int arguments" ]
+        , text " and the "
+        , span [ class "text-blue-900" ] [ text "return the sum of them" ]
+        ]
+    , Editor.view excerciseThreeId model.editor |> Html.map EditorMsg
+    , case Dict.get (UI.toString excerciseThreeId) model.editor.editor.result of
+        Just (Success result) ->
+            if hasFail result then
+                UI.pill "bg-red-600" "Fail"
 
--- excerciseThree : ( Int, Int ) -> List (Html Msg)
--- excerciseThree ( min, max ) =
---     let
---         result =
---             Excercises.three min max
---         display =
---             if result == (min + max) then
---                 [ UI.pill "bg-green-500" "Succeed" ]
---             else
---                 [ UI.pill "bg-red-500" "Fail"
---                 , span [ class "text-red-500" ] [ text <| String.fromInt result ++ " must be " ++ ((min + max) |> String.fromInt) ]
---                 ]
---     in
---     Html.p [ class "text-lg text-yellow-900" ] [ text "This function should have Two Int parameter and return this some of them" ]
---         :: display
+            else
+                UI.pill "bg-green-600" "Success"
+
+        _ ->
+            UI.pill "bg-yellow-600" "Waiting"
+    , navButton
+        (toScrollId excerciseFourId)
+        "Next"
+        (model.editor.editor.result |> Dict.get (UI.toString excerciseThreeId) |> Maybe.withDefault NotAsked |> RemoteData.map hasFail |> RemoteData.withDefault True)
+    ]
+        |> UI.page (toScrollId excerciseThreeId)
+
+
+excerciseFour : Model -> Html Msg
+excerciseFour model =
+    [ navButton (toScrollId excerciseThreeId) "Previous" False
+    , Html.p [ class "text-lg text-yellow-900" ]
+        [ text "Learn how to use "
+        , span [ class "text-blue-900" ] [ Html.a [ href "https://package.elm-lang.org/packages/elm/core/latest/Basics#(|%3E)" ] [ text "pipe " ] ]
+        , text "replace all "
+        , span [ class "text-blue-900" ] [ text "bracket () " ]
+        , text "by using only "
+        , span [ class "text-blue-900" ] [ text "|>" ]
+        ]
+    , Editor.view excerciseFourId model.editor |> Html.map EditorMsg
+    , case Dict.get (UI.toString excerciseFourId) model.editor.editor.result of
+        Just (Success result) ->
+            if hasFail result then
+                UI.pill "bg-red-600" "Fail"
+
+            else
+                UI.pill "bg-green-600" "Success"
+
+        _ ->
+            UI.pill "bg-yellow-600" "Waiting"
+    ]
+        |> UI.page (toScrollId excerciseFourId)
