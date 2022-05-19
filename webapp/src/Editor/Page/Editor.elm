@@ -307,9 +307,6 @@ view id_ model =
                                 |> List.map
                                     (\step ->
                                         case step of
-                                            CompileResult.RunStart _ ->
-                                                text "Start"
-
                                             CompileResult.TestCompleted r ->
                                                 case r of
                                                     CompileResult.TestFail _ ->
@@ -318,10 +315,10 @@ view id_ model =
                                                     CompileResult.TestPass _ ->
                                                         text "Pass"
 
-                                            CompileResult.RunComplete _ ->
-                                                text "Completed"
+                                            _ ->
+                                                text ""
                                     )
-                                |> div []
+                                |> div [ class "flex flex-col" ]
 
                 NotAsked ->
                     text "wait compilation"

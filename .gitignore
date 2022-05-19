@@ -6,3 +6,4 @@ temps
 build
 .env.production
 deploy.json
+credential.txt

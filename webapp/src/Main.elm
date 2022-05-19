@@ -6,7 +6,7 @@ import Editor.Data.CompileResult exposing (hasFail)
 import Editor.Data.Registry.Defaults as Defaults
 import Editor.Data.Version exposing (Version(..))
 import Editor.Page.Editor as Editor
-import Html exposing (Html, a, button, div, i, nav, span, text)
+import Html exposing (Attribute, Html, a, button, div, i, nav, span, text)
 import Html.Attributes as Attr exposing (class, disabled, href)
 import Html.Events exposing (onClick)
 import Json.Encode as En exposing (Value)
@@ -109,6 +109,11 @@ scrollTo id =
             ScrollTo.scrollTo id_ |> Cmd.map ScrollToMsg
 
 
+p : List (Html.Attribute msg) -> List (Html msg) -> Html msg
+p attrs htmls =
+    Html.p (class "text-lg text-white" :: attrs) htmls
+
+
 view : Model -> Html Msg
 view model =
     div [ class "bg-black w-screen min-h-screen" ] <|
@@ -118,11 +123,18 @@ view model =
 
             Just _ ->
                 [ UI.page introId
-                    [ Html.h1 [ class "text-7xl text-pink-900" ] [ text "Elm Tutorial" ]
+                    [ Html.h1 [ class "text-7xl text-pink-600" ] [ text "Elm Tutorial" ]
                     , div []
-                        [ Html.p [ class "text-lg text-white" ] [ text "If the indicator is ", span [ class "text-red-500 " ] [ text "red" ], text ", your code or return is wrong" ]
-                        , Html.p [ class "text-lg text-white" ] [ text "If the indicator is ", span [ class "text-yellow-500 " ] [ text "yellow" ], text ", maybe place to optimization" ]
-                        , Html.p [ class "text-lg text-white" ] [ text "If the indicator is ", span [ class "text-green-500 " ] [ text "green" ], text ", everything is right" ]
+                        [ p [] [ text "If the indicator is ", span [ class "text-red-500 " ] [ text "red" ], text ", your code or return is wrong" ]
+                        , p [] [ text "If the indicator is ", span [ class "text-yellow-500 " ] [ text "yellow" ], text ", maybe place to optimization" ]
+                        , p [] [ text "If the indicator is ", span [ class "text-green-500 " ] [ text "green" ], text ", everything is right" ]
+                        ]
+                    , div []
+                        [ Html.h2 [ class "text-pink-600 text-3xl pb-2" ]
+                            [ text "Some Usefull Documentations"
+                            ]
+                        , p [ Attr.class "text-blue-300 text-center" ] [ Html.a [ Attr.href "https://guide.elm-lang.org/core_language.html", Attr.target "_blank" ] [ text "The Elm Guide" ] ]
+                        , p [ Attr.class "text-blue-300 text-center" ] [ Html.a [ Attr.href "https://package.elm-lang.org/packages/elm/core/latest/", Attr.target "_blank" ] [ text "Core Package" ] ]
                         ]
                     , navButton excerciseOneScrollId "Start With Synthase" False
                     ]
