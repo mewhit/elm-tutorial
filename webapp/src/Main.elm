@@ -158,14 +158,14 @@ excerciseTwoScrollId =
     UI.toId "excercise-scroll-two"
 
 
-excerciseOneEditorId : UI.Id
-excerciseOneEditorId =
-    UI.toId "excercise-editor-one"
+excerciseOneId : UI.Id
+excerciseOneId =
+    UI.toId "1"
 
 
-excerciseTwoEditorId : UI.Id
-excerciseTwoEditorId =
-    UI.toId "excercise-editor-two"
+excerciseTwoId : UI.Id
+excerciseTwoId =
+    UI.toId "2"
 
 
 navButton : UI.Id -> String -> Bool -> Html Msg
@@ -194,7 +194,7 @@ excerciseOne model =
         , text " and the "
         , span [ class "text-blue-900" ] [ text "return is always 0" ]
         ]
-    , Editor.view excerciseOneEditorId model.editor |> Html.map EditorMsg
+    , Editor.view excerciseOneId model.editor |> Html.map EditorMsg
     , case model.editor.editor.result of
         Success result ->
             if hasFail result then
@@ -225,7 +225,7 @@ excerciseTwo model =
         , text " and the "
         , span [ class "text-blue-900" ] [ text "return identical Int" ]
         ]
-    , Editor.view excerciseTwoEditorId model.editor |> Html.map EditorMsg
+    , Editor.view excerciseTwoId model.editor |> Html.map EditorMsg
     ]
         |> UI.page excerciseTwoScrollId
 

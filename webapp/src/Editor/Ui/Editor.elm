@@ -119,7 +119,7 @@ type Msg
     = OnChange String (Maybe Error.Region)
     | OnSave String (Maybe Error.Region)
     | OnHint (Maybe String)
-    | OnCompile
+    | OnCompile String
     | HandleResult (WebData CompileResult.CompileResult)
       -- | GotDepsInfo (Result Http.Error Deps.Info)
     | GotSuccess
@@ -151,11 +151,11 @@ update msg model status =
             , submitSource source
             )
 
-        OnCompile ->
+        OnCompile id ->
             ( updateImports model
             , Status.compiling status
             , Cmd.batch
-                [ postSource model.domain model.source
+                [ postSource model.domain model.source id
 
                 -- , submitSource model.source
                 ]
@@ -193,9 +193,9 @@ updateImports model =
             model
 
 
-postSource : String -> String -> Cmd Msg
-postSource domain source =
-    Http.post (domain ++ "/excercise-1")
+postSource : String -> String -> String -> Cmd Msg
+postSource domain source id =
+    Http.post (domain ++ "/excercise/" ++ id)
         HandleResult
         CompileResult.decode
         (E.object

@@ -63,18 +63,20 @@ export class AppService {
 
   constructor(private readonly elmService: ElmService) { }
 
-  compile(str: string): Either.Either<string, readonly TestResult[]> {
+  compile(id: string, str: string): Either.Either<string, readonly TestResult[]> {
     createTempsDir()
     const dirPath = `temps/${newGuid()}`
+
+    const excercise = `excercise-${id}`
 
     try {
       if (!fs.existsSync(dirPath)) {
         fs.mkdirSync(dirPath);
       }
-      copyFolderRecursiveSync('template/excercise-1', `${dirPath}`)
-      fs.appendFileSync(`${dirPath}/excercise-1/src/Main.elm`, str);
+      copyFolderRecursiveSync(`template/${excercise}`, `${dirPath}`)
+      fs.appendFileSync(`${dirPath}/${excercise}/src/Main.elm`, str);
 
-      const excercisePath = `${dirPath}/excercise-1`
+      const excercisePath = `${dirPath}/${excercise}`
 
       return this.elmService.test(excercisePath)
 

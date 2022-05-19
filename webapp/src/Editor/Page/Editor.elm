@@ -294,7 +294,7 @@ view id_ model =
             model.divider
             [ Editor.Ui.Editor.viewEditor id_ (Editor.Ui.Package.getSolution model.packageUi) model.isLight model.editor
                 |> Html.map OnEditorMsg
-            , viewNavigation model
+            , viewNavigation id_ model 
             ]
             [ case model.editor.result of
                 Success result ->
@@ -336,8 +336,8 @@ view id_ model =
 -- NAVIGATION
 
 
-viewNavigation : Model -> Html Msg
-viewNavigation model =
+viewNavigation : UI.Id -> Model -> Html Msg
+viewNavigation id_ model =
     Editor.Ui.Navigation.view
         { isLight = model.isLight
         , isOpen = model.isMenuOpen
@@ -359,7 +359,7 @@ viewNavigation model =
 
                 Nothing ->
                     text ""
-            , Editor.Ui.Navigation.compilation (OnEditorMsg Editor.Ui.Editor.OnCompile) model.status
+            , Editor.Ui.Navigation.compilation (OnEditorMsg <| Editor.Ui.Editor.OnCompile <| UI.toString id_) model.status
 
             --, Ui.Navigation.share (OnEditorMsg Editor.Ui.Editor.OnCompile)
             --, Ui.Navigation.deploy (OnEditorMsg Editor.Ui.Editor.OnCompile)
