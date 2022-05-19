@@ -15,7 +15,3 @@ suite =
         
 
 
-
--- suite : Test
--- suite =
---     test "It should be always 0" <| \_ -> equal const0 0

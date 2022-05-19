@@ -294,10 +294,10 @@ view id_ model =
             model.divider
             [ Editor.Ui.Editor.viewEditor id_ (Editor.Ui.Package.getSolution model.packageUi) model.isLight model.editor
                 |> Html.map OnEditorMsg
-            , viewNavigation id_ model 
+            , viewNavigation id_ model
             ]
-            [ case model.editor.result of
-                Success result ->
+            [ case Dict.get (id_ |> UI.toString) model.editor.result of
+                Just (Success result) ->
                     case result of
                         CompileResult.Error err ->
                             Html.pre [] [ text err.error ]
@@ -320,14 +320,17 @@ view id_ model =
                                     )
                                 |> div [ class "flex flex-col" ]
 
-                NotAsked ->
+                Just NotAsked ->
                     text "wait compilation"
 
-                Loading ->
+                Just Loading ->
                     text "loader"
 
-                Failure _ ->
+                Just (Failure _) ->
                     text "Fail"
+
+                Nothing ->
+                    text ""
             ]
         ]
 

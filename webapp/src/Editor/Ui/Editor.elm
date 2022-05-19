@@ -58,7 +58,7 @@ type alias Model =
 
     -- , dependencies : DepsInfo
     , selection : Maybe Error.Region
-    , result : WebData CompileResult.CompileResult
+    , result : Dict String (WebData CompileResult.CompileResult)
     }
 
 
@@ -90,7 +90,7 @@ init domain source =
 
             -- , dependencies = Loading
             , selection = Nothing
-            , result = NotAsked
+            , result = Dict.empty
             }
     in
     case Header.parse source of
@@ -120,7 +120,7 @@ type Msg
     | OnSave String (Maybe Error.Region)
     | OnHint (Maybe String)
     | OnCompile String
-    | HandleResult (WebData CompileResult.CompileResult)
+    | HandleResult String (WebData CompileResult.CompileResult)
       -- | GotDepsInfo (Result Http.Error Deps.Info)
     | GotSuccess
     | GotErrors E.Value
@@ -173,8 +173,8 @@ update msg model status =
         --             , status
         --             , Cmd.none
         --             )
-        HandleResult result ->
-            ( { model | result = result }, Status.success, Cmd.none )
+        HandleResult id result ->
+            ( { model | result = Dict.insert id result model.result }, Status.success, Cmd.none )
 
         GotSuccess ->
             ( model, Status.success, Cmd.none )
@@ -196,7 +196,7 @@ updateImports model =
 postSource : String -> String -> String -> Cmd Msg
 postSource domain source id =
     Http.post (domain ++ "/excercise/" ++ id)
-        HandleResult
+        (HandleResult id)
         CompileResult.decode
         (E.object
             [ ( "code", E.string source ) ]
