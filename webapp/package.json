@@ -6,7 +6,8 @@
     "client": "parcel src/index.html --port 4040",
     "build": "parcel build src/index.html --dist-dir build",
     "css": "npx tailwindcss-cli@latest build ./src/index.tailwind.css -o ./public/tailwind.css",
-    "test": "elm test"
+    "test": "elm test",
+    "api": "elm-graphql http://localhost:3000/graphql --base Generated"
   },
   "dependencies": {
     "@codemirror/basic-setup": "^0.20.0",
@@ -16,6 +17,7 @@
     "tailwindcss": "^3.0.24"
   },
   "devDependencies": {
+    "@dillonkearns/elm-graphql": "^4.2.4",
     "@parcel/transformer-elm": "2.5.0",
     "autoprefixer": "^10.4.7",
     "buffer": "^6.0.3",

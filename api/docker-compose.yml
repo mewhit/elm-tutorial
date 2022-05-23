@@ -4,7 +4,28 @@ services:
   elm-tutorial-api:
     image: elm-tutorial-api:1.0.0
     build:
-        context: .
+      context: .
     ports:
-        - 3000:3000
+      - 3001:3000
+  neo4j:
+    image: neo4j:4.4
+    environment:
+      - NEO4J_AUTH=neo4j/password
+    ports:
+      - 7474:7474
+      - 7687:7687
+    volumes:
+      - neo4j_data:/data
+  mongo:
+    image: mongo:4.4.14
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=r00tS3cr3t
+    ports:
+      - 27017:27017
+    volumes:
+      - mongo_data:/data/db
 
+volumes:
+  neo4j_data:
+  mongo_data:

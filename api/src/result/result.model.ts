@@ -1,21 +1,20 @@
 interface Success {
-    yourScore: {
-        execTime: number
-        lenght: number
-    }
-    communityScore: {
-        execTime: number
-        lenght: number
-    }
-    bestScore: {
-        execTime: number
-        lenght: number
-    }
+  yourScore: {
+    execTime: number;
+    lenght: number;
+  };
+  communityScore: {
+    execTime: number;
+    lenght: number;
+  };
+  bestScore: {
+    execTime: number;
+    lenght: number;
+  };
 }
 
 interface Failure {
-    error: string
+  error: string;
 }
 
-type Result = Success | Failure
-
+type Result = Success | Failure;

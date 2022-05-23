@@ -59,6 +59,7 @@ type alias Model =
     -- , dependencies : DepsInfo
     , selection : Maybe Error.Region
     , result : Dict String (WebData CompileResult.CompileResult)
+    , sources : Dict String String
     }
 
 
@@ -91,6 +92,7 @@ init domain source =
             -- , dependencies = Loading
             , selection = Nothing
             , result = Dict.empty
+            , sources = [ ( "4", "pipe: Int -> Int -> Int -> Int -> Int -> Int\npipe n1 n2 n3 n4 n5 =\n (n1 + n2) * (n3 - n4) / n5\n " ) ] |> Dict.fromList
             }
     in
     case Header.parse source of
@@ -116,7 +118,7 @@ init domain source =
 
 
 type Msg
-    = OnChange String (Maybe Error.Region)
+    = OnChange String String (Maybe Error.Region)
     | OnSave String (Maybe Error.Region)
     | OnHint (Maybe String)
     | OnCompile String
@@ -129,10 +131,11 @@ type Msg
 update : Msg -> Model -> Status.Status -> ( Model, Status.Status, Cmd Msg )
 update msg model status =
     case msg of
-        OnChange source selection ->
+        OnChange id source selection ->
             ( { model
                 | source = source
                 , selection = selection
+                , sources = Dict.insert id source model.sources
               }
             , Status.changed status
             , Cmd.none
@@ -241,7 +244,7 @@ viewEditor id_ solution isLight model =
 
             Nothing ->
                 viewSolutionInput solution ""
-        , lazy5 viewEditor_ id_ model.source model.selection isLight model.importEnd
+        , lazy5 viewEditor_ id_ (model.sources |> Dict.get (UI.toString id_) |> Maybe.withDefault "") model.selection isLight model.importEnd
         ]
 
 
@@ -278,7 +281,7 @@ viewEditor_ id_ source selection lights importEnd =
                 Just region ->
                     encodeSelection region
         , on "save" (D.map2 OnSave decodeSource decodeSelection)
-        , on "change" (D.map2 OnChange decodeSource decodeSelection)
+        , on "change" (D.map2 (OnChange (id_ |> UI.toString)) decodeSource decodeSelection)
         , on "hint" (D.map OnHint decodeHint)
         ]
         []
