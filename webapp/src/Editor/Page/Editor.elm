@@ -2,6 +2,7 @@ module Editor.Page.Editor exposing (Model, Msg, init, subscriptions, update, vie
 
 import Browser
 import Browser.Events
+import Config exposing (Config)
 import Dict exposing (Dict)
 import Editor.Data.Analytics as Analytics
 import Editor.Data.CompileResult as CompileResult
@@ -71,7 +72,7 @@ getProblems model =
 
 type alias Flags =
     { original : String
-    , domain : String
+    , config : Config
     , name : String
     , width : Int
     , height : Int
@@ -98,7 +99,7 @@ init flags =
         -- flags =
         --     Result.withDefault defaultFlags (D.decodeValue decodeFlags flagsRaw)
         ( editor, editorCmd ) =
-            Editor.Ui.Editor.init flags.domain flags.original
+            Editor.Ui.Editor.init flags.config flags.original
 
         ( packageUi, packageUiCmd ) =
             Editor.Ui.Package.init flags.direct flags.indirect

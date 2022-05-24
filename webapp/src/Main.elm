@@ -1,55 +1,93 @@
-module Main exposing (..)
+port module Main exposing (..)
 
+import Auth
+import Authenticate
 import Browser
 import Browser.Dom exposing (Viewport, getViewport)
+import Browser.Navigation as Nav
+import Config exposing (Config, setUser)
 import Dict
 import Editor.Data.CompileResult exposing (hasFail)
 import Editor.Data.Registry.Defaults as Defaults
 import Editor.Data.Version exposing (Version(..))
 import Editor.Page.Editor as Editor
-import Html exposing (Html, button, div, i, nav, span, text)
+import Html exposing (Html, button, div, span, text)
 import Html.Attributes as Attr exposing (class, disabled, href)
 import Html.Events exposing (onClick)
-import Json.Encode as En exposing (Value)
-import Random
-import RemoteData exposing (RemoteData(..))
+import Http.Extra exposing (fromString)
+import RemoteData exposing (RemoteData(..), WebData)
+import Router exposing (routeParser)
 import ScrollTo as ScrollTo
 import Task
+import UI.Modal exposing (modal)
+import UI.Typographie exposing (p, title)
 import UI.UI as UI
+import Url
+import Url.Parser
+
+
+port saveAccessToken : String -> Cmd msg
 
 
 type alias Model =
-    { domain : String
-    , randomPair : ( Int, Int )
+    { config : Config
     , editor : Editor.Model
     , scrollTo : ScrollTo.State
     , viewport : Maybe Viewport
+    , key : Nav.Key
+    , url : Url.Url
+    , signUpModal : Bool
+    , signInStatus : WebData String
     }
 
 
-main : Program { domain : String } Model Msg
+main : Program { domain : String, accessToken : String } Model Msg
 main =
-    Browser.element
+    Browser.application
         { init =
-            \{ domain } ->
-                let
-                    ( editorModel, editorCmd ) =
-                        Editor.init
-                            { original = ""
-                            , name = ""
-                            , domain = domain
-                            , width = 250
-                            , height = 250
-                            , direct = Defaults.direct
-                            , indirect = Defaults.indirect
-                            }
-                in
-                ( { domain = domain, randomPair = ( 0, 10 ), editor = editorModel, scrollTo = ScrollTo.init, viewport = Nothing }
-                , Cmd.batch
-                    [ Random.generate RandomNumber (Random.pair (Random.int 0 4) (Random.int 5 10))
-                    , Cmd.batch [ Task.perform HandleViewport getViewport, Cmd.map EditorMsg editorCmd ]
-                    ]
-                )
+            \{ domain, accessToken } ->
+                \url ->
+                    \key ->
+                        let
+                            config =
+                                { domain = domain
+                                , user =
+                                    if String.isEmpty accessToken then
+                                        Auth.Signout
+
+                                    else
+                                        Auth.SignIn { accessToken = fromString accessToken }
+                                }
+
+                            ( editorModel, editorCmd ) =
+                                Editor.init
+                                    { original = ""
+                                    , name = ""
+                                    , config = config
+                                    , width = 250
+                                    , height = 250
+                                    , direct = Defaults.direct
+                                    , indirect = Defaults.indirect
+                                    }
+
+                            ( model, cmdMsg ) =
+                                update (UrlChanged url)
+                                    { editor = editorModel
+                                    , scrollTo = ScrollTo.init
+                                    , viewport = Nothing
+                                    , key = key
+                                    , url = url
+                                    , signUpModal = False
+                                    , signInStatus = NotAsked
+                                    , config = config
+                                    }
+                        in
+                        ( model
+                        , Cmd.batch
+                            [ Cmd.batch [ Task.perform HandleViewport getViewport, Cmd.map EditorMsg editorCmd ]
+                            , cmdMsg
+                            ]
+                        )
         , view = view
         , update = update
         , subscriptions =
@@ -59,23 +97,26 @@ main =
                     , Sub.map ScrollToMsg <|
                         ScrollTo.subscriptions model.scrollTo
                     ]
+        , onUrlChange = UrlChanged
+        , onUrlRequest = LinkClicked
         }
 
 
 type Msg
-    = RandomNumber ( Int, Int )
-    | EditorMsg Editor.Msg
+    = EditorMsg Editor.Msg
     | ScrollToMsg ScrollTo.Msg
     | ScrollToId UI.Id
     | HandleViewport Viewport
+    | SignIn
+    | SignOut
+    | CloseModal
+    | LinkClicked Browser.UrlRequest
+    | UrlChanged Url.Url
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        RandomNumber pair ->
-            ( { model | randomPair = pair }, Cmd.none )
-
         EditorMsg editorMsg ->
             let
                 ( editorModel, editorCmd ) =
@@ -95,12 +136,56 @@ update msg model =
             )
 
         ScrollToId id ->
-            ( model
+            ( { model
+                | signUpModal =
+                    case model.config.user of
+                        Auth.SignIn _ ->
+                            False
+
+                        Auth.Signout ->
+                            False
+              }
             , scrollTo id
             )
 
         HandleViewport viewport ->
             ( { model | viewport = Just viewport }, Cmd.none )
+
+        SignIn ->
+            ( { model | signUpModal = True }, Cmd.none )
+
+        SignOut ->
+            ( { model | config = setUser Auth.Signout model.config }, saveAccessToken "" )
+
+        CloseModal ->
+            ( { model | signUpModal = False }, Cmd.none )
+
+        LinkClicked urlRequest ->
+            case urlRequest of
+                Browser.Internal url ->
+                    ( model, Nav.pushUrl model.key (Url.toString url) )
+
+                Browser.External href ->
+                    ( model, Nav.load href )
+
+        UrlChanged url ->
+            { model | url = url }
+                |> (\model_ ->
+                        case Url.Parser.parse routeParser url of
+                            Just Router.Home ->
+                                ( model_, Cmd.none )
+
+                            Just (Router.Callback (Just token)) ->
+                                ( { model | config = setUser (Auth.SignIn { accessToken = fromString token }) model.config }
+                                , Cmd.batch [ saveAccessToken token, Nav.pushUrl model.key "/" ]
+                                )
+
+                            Just (Router.Callback Nothing) ->
+                                ( model_, Cmd.none )
+
+                            _ ->
+                                ( model_, Cmd.none )
+                   )
 
 
 scrollTo : UI.Id -> Cmd Msg
@@ -110,41 +195,63 @@ scrollTo id =
             ScrollTo.scrollTo id_ |> Cmd.map ScrollToMsg
 
 
-p : List (Html.Attribute msg) -> List (Html msg) -> Html msg
-p attrs htmls =
-    Html.p (class "text-lg text-white" :: attrs) htmls
-
-
-view : Model -> Html Msg
+view : Model -> Browser.Document Msg
 view model =
-    div [ class "bg-black w-screen min-h-screen" ] <|
-        case model.viewport of
-            Nothing ->
-                [ text "loading" ]
+    { title = "Elm Tutorial"
+    , body =
+        [ div [ class "bg-black w-screen min-h-screen" ] <|
+            case model.viewport of
+                Nothing ->
+                    [ text "loading" ]
 
-            Just _ ->
-                [ UI.page introId
-                    [ Html.h1 [ class "text-7xl text-pink-600" ] [ text "Elm Tutorial" ]
-                    , div []
-                        [ p [] [ text "If the indicator is ", span [ class "text-red-500 " ] [ text "red" ], text ", your code or return is wrong" ]
-                        , p [] [ text "If the indicator is ", span [ class "text-yellow-500 " ] [ text "yellow" ], text ", maybe place to optimization" ]
-                        , p [] [ text "If the indicator is ", span [ class "text-green-500 " ] [ text "green" ], text ", everything is right" ]
+                Just _ ->
+                    [ div [ class "fixed w-full h-12 bg-slate-300 z-20 flex flex-row-reverse pr-5 pl-5" ]
+                        [ case model.config.user of
+                            Auth.SignIn _ ->
+                                button [ onClick SignOut ] [ text "Sign out" ]
+
+                            Auth.Signout ->
+                                button [ onClick SignIn ] [ text "Sign in" ]
                         ]
-                    , div []
-                        [ Html.h2 [ class "text-pink-600 text-3xl pb-2" ]
-                            [ text "Some Usefull Documentations"
+                    , UI.page introId
+                        [ title [] [ text "Elm Tutorial" ]
+                        , div []
+                            [ p [] [ text "If the indicator is ", span [ class "text-red-500 " ] [ text "red" ], text ", your code or return is wrong" ]
+                            , p [] [ text "If the indicator is ", span [ class "text-yellow-500 " ] [ text "yellow" ], text ", maybe place to optimization" ]
+                            , p [] [ text "If the indicator is ", span [ class "text-green-500 " ] [ text "green" ], text ", everything is right" ]
                             ]
-                        , p [ Attr.class "text-blue-300 text-center" ] [ Html.a [ Attr.href "https://guide.elm-lang.org/core_language.html", Attr.target "_blank" ] [ text "The Elm Guide" ] ]
-                        , p [ Attr.class "text-blue-300 text-center" ] [ Html.a [ Attr.href "https://package.elm-lang.org/packages/elm/core/latest/", Attr.target "_blank" ] [ text "Core Package" ] ]
+                        , div []
+                            [ Html.h2 [ class "text-pink-600 text-3xl pb-2" ]
+                                [ text "Some Usefull Documentations"
+                                ]
+                            , p [ Attr.class "text-blue-300 text-center" ] [ Html.a [ Attr.href "https://guide.elm-lang.org/core_language.html", Attr.target "_blank" ] [ text "The Elm Guide" ] ]
+                            , p [ Attr.class "text-blue-300 text-center" ] [ Html.a [ Attr.href "https://package.elm-lang.org/packages/elm/core/latest/", Attr.target "_blank" ] [ text "Core Package" ] ]
+                            ]
+                        , navButton (toScrollId excerciseOneId) "Start With Synthase" False
                         ]
-                    , navButton (toScrollId excerciseOneId) "Start With Synthase" False
-                    ]
-                , excerciseOne model
-                , excerciseTwo model
-                , excerciseThree model
+                    , excerciseOne model
+                    , excerciseTwo model
+                    , excerciseThree model
+                    , if model.signUpModal then
+                        modal
+                            { onClose = CloseModal
+                            , content =
+                                [ div [ class "p-10" ] [ UI.Typographie.subtitle [] [ text "Sign In" ], p [ class "" ] [ text "Is useless for now! But sometime we gonna keep your progress and comparing score" ] ]
+                                , Html.a
+                                    [ Attr.href <| model.config.domain ++ "/auth/github"
+                                    , Attr.class "bg-gray-500 bg-opacity-75 text-white p-2 rounded"
+                                    ]
+                                    [ button [] [ text "Sign in with GitHub" ] ]
+                                ]
+                            }
 
-                -- , excerciseFour model
-                ]
+                      else
+                        text ""
+
+                    -- , excerciseFour model
+                    ]
+        ]
+    }
 
 
 introId : UI.Id

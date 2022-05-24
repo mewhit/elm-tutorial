@@ -1,8 +1,14 @@
 import { Elm } from "./Main.elm";
 
+const ACCESS_TOKEN = "accessToken"
 
 window.addEventListener('load', function () {
-    const main = Elm.Main.init({ node: document.getElementById("root"), flags: { domain: process.env.DOMAIN } });
+    const accessToken = this.localStorage.getItem(ACCESS_TOKEN) || ""
+
+    const main = Elm.Main.init({ node: document.getElementById("root"), flags: { domain: process.env.DOMAIN, accessToken } });
+    main.ports.saveAccessToken.subscribe((at) => {
+        localStorage.setItem(ACCESS_TOKEN, at)
+    })
     main.ports.submitSource.subscribe(function (source, id) {
         var editorNode = document.getElementById(id);
         var codeNode = document.getElementById(`${id}code`);

@@ -6,6 +6,7 @@ Relies on code-editor.js being present.
 
 -}
 
+import Config exposing (Config)
 import Dict exposing (Dict)
 import Editor.Data.CompileResult as CompileResult
 import Editor.Data.Deps as Deps
@@ -16,6 +17,7 @@ import Editor.Data.Registry.Package as Package
 import Editor.Data.Registry.Solution as Solution
 import Editor.Data.Status as Status
 import Editor.Data.Version as Version exposing (Version(..))
+import Editor.Excercise exposing (postSource)
 import Editor.Ui.Icon
 import Elm.Error as Error
 import FeatherIcons as I
@@ -49,7 +51,7 @@ port gotSuccess : (() -> msg) -> Sub msg
 
 
 type alias Model =
-    { domain : String
+    { config : Config
     , source : String
     , hint : Maybe String
     , hintTable : Hint.Table
@@ -78,12 +80,12 @@ setSelection region model =
 -- INIT
 
 
-init : String -> String -> ( Model, Cmd Msg )
-init domain source =
+init : Config -> String -> ( Model, Cmd Msg )
+init config source =
     let
         defaults =
             { source = source
-            , domain = domain
+            , config = config
             , hint = Nothing
             , hintTable = Hint.defaultTable
             , imports = Header.defaultImports
@@ -158,7 +160,7 @@ update msg model status =
             ( updateImports model
             , Status.compiling status
             , Cmd.batch
-                [ postSource model.domain model.source id
+                [ postSource model.config model.source id HandleResult
 
                 -- , submitSource model.source
                 ]
@@ -194,16 +196,6 @@ updateImports model =
 
         Just ( imports, importEnd ) ->
             model
-
-
-postSource : String -> String -> String -> Cmd Msg
-postSource domain source id =
-    Http.post (domain ++ "/excercise/" ++ id)
-        (HandleResult id)
-        CompileResult.decode
-        (E.object
-            [ ( "code", E.string source ) ]
-        )
 
 
 

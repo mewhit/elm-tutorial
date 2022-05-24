@@ -7,19 +7,28 @@ import {
   ApolloFederationDriverConfig,
 } from '@nestjs/apollo';
 import { ExcerciseSolutionModule } from './excercise-solution/excercise-solution.module';
-import { MongooseModule, MongooseModuleFactoryOptions } from '@nestjs/mongoose';
+import { MongooseModule } from '@nestjs/mongoose';
 import { AppController } from './app.controller';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { AuthModule } from './auth/auth.module';
+import { UserModule } from './user/user.module';
+import githubAuthConfig from './auth/github/github.config';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
+      isGlobal: true,
       load: [
         () => ({
+          callbackURL: `${process.env.ELM_TUTORIAL_URL}`,
+          jwt: {
+            secret: process.env.JWT_SECRET,
+          },
           mongo: {
             uri: process.env.MONGO_URI,
           },
         }),
+        githubAuthConfig,
       ],
     }),
     MongooseModule.forRootAsync({
@@ -41,6 +50,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     ExcerciseModule,
     ElmModule,
     ExcerciseSolutionModule,
+    AuthModule,
+    UserModule,
   ],
   controllers: [AppController],
   providers: [],

@@ -1,21 +1,48 @@
-import { Body, Controller, Header, Param, Post, UseInterceptors } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Header,
+  Param,
+  Post,
+  Req,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import * as Either from 'fp-ts/Either'
+import * as Either from 'fp-ts/Either';
+import { JwtAuthGuard } from '../auth/jwt/jwt-auth.guard';
 
 import { TestResult } from '../elm/test-result.model';
 import { ExcerciseService } from './excercise.service';
+import { ExcerciseAuthGuard } from './guard/excercise-auth.guard';
 
-interface Error { error: string }
+interface Error {
+  error: string;
+}
 
+@UseGuards(ExcerciseAuthGuard || JwtAuthGuard)
 @Controller('excercise')
 export class ExcerciseController {
+  constructor(private excerciseService: ExcerciseService) {}
 
-    constructor(private appService: ExcerciseService) { }
+  @Post(':id')
+  @UseInterceptors(FileInterceptor(''))
+  @Header('content-type', 'application/json')
+  run(
+    @Param('id') id: string,
+    @Body() body: { code: string },
+    @Req() req: any,
+  ): Error | readonly TestResult[] {
+    const user = req.user;
+    console.log('user', user);
 
-    @Post(":id")
-    @UseInterceptors(FileInterceptor(""))
-    @Header("content-type", "application/json")
-    getHello(@Param("id") id, @Body() body): Error | readonly TestResult[] {
-        return Either.fold<string, readonly TestResult[], Error | readonly TestResult[]>(x => ({ error: x }), (x => x))(this.appService.compile(id, body.code))
-    }
+    return Either.fold<
+      string,
+      readonly TestResult[],
+      Error | readonly TestResult[]
+    >(
+      (x) => ({ error: x }),
+      (x) => x,
+    )(this.excerciseService.compile(id, body.code));
+  }
 }
