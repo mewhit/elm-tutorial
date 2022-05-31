@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { execSync } from 'child_process';
-import { fromBuffer, TestResult } from './test-result.model';
 import * as Either from 'fp-ts/Either';
+import { fromBuffer, CompileResult } from './test-result.schema';
 type Path = string;
 
 @Injectable()
 export class ElmService {
-  test(excercisePath: Path): Either.Either<string, readonly TestResult[]> {
+  test(excercisePath: Path): Either.Either<string, readonly CompileResult[]> {
     try {
       return fromBuffer(
         execSync(`cd ${excercisePath} && elm-test --report=json`),

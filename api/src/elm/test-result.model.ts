@@ -1,68 +1,108 @@
-import { Either, left, right, sequenceArray } from 'fp-ts/Either'
+import {
+  createUnionType,
+  Field,
+  Int,
+  ObjectType,
+  ArrayElement,
+  Float,
+} from '@nestjs/graphql';
+import { Either, left, right, sequenceArray } from 'fp-ts/Either';
+import { Err } from '../libs/Err';
 
-type TestEvent = "runStart" | "testCompleted" | "runComplete"
+type TestEvent = 'runStart' | 'testCompleted' | 'runComplete';
 
-type TestStatus = "pass" | "fail"
+type TestStatus = 'pass' | 'fail';
 
-type RunStart = {
-    event: TestEvent,
-    testCount: number,
-    fuzzRuns: number,
-    globs: [],
-    paths: string[],
-    initialSeed: string
+@ObjectType()
+class RunStart {
+  @Field()
+  event: TestEvent;
+
+  @Field(() => Int)
+  testCount: number;
+
+  @Field(() => Int)
+  fuzzRuns: number;
+
+  @Field(() => [String])
+  paths: string[];
+
+  @Field()
+  initialSeed: string;
 }
 
-type TestCompleted = {
-    event: TestEvent,
-    status: TestStatus
-    labels: string[],
-    failures: { given: null, message: string, reason: { type: string, data: { expected: string, actual: string, comparison: string } } }[],
-    duration: number
+@ObjectType()
+class TestCompleted {
+  @Field()
+  event: TestEvent;
+
+  @Field()
+  status: TestStatus;
+
+  @Field(() => [String])
+  labels: string[];
+
+  @Field(() => [Failure])
+  failures: Failure[];
+
+  @Field(() => Float)
+  duration: number;
 }
 
-type RunComplete = {
-    event: TestEvent,
-    passed: number,
-    failed: number,
-    duration: number,
-    autoFail: null
+@ObjectType()
+class ReasonData {
+  @Field()
+  expected: string;
+
+  @Field()
+  actual: string;
+
+  @Field()
+  comparison: string;
+}
+@ObjectType()
+class Reason {
+  @Field()
+  type: string;
+
+  @Field(() => ReasonData)
+  data: ReasonData;
+}
+@ObjectType()
+class Failure {
+  given: null;
+
+  @Field()
+  message: string;
+
+  @Field(() => Reason)
+  reason: Reason;
 }
 
-export type TestResult = RunStart | TestCompleted | RunComplete
+@ObjectType()
+class RunComplete {
+  @Field()
+  event: TestEvent;
 
-export const fromBuffer = (buffer: Buffer): Either<string, readonly TestResult[]> => {
-    return sequenceArray(buffer.toString().toString().split('\n').slice(0, -1).map(fromString))
+  @Field(() => Int)
+  passed: number;
+
+  @Field(() => Int)
+  failed: number;
+
+  @Field(() => Float)
+  duration: number;
 }
 
-export const fromString = (str: string): Either<string, TestResult> => {
-    const unpur = JSON.parse(str)
-    switch (unpur.event) {
-        case "runStart":
-            return right({
-                event: unpur.event,
-                testCount: +unpur.testCount,
-                fuzzRuns: + unpur.fuzzRuns,
-                globs: unpur.globs,
-                paths: unpur.paths,
-                initialSeed: unpur.initialSeed
-            })
-        case "testCompleted": return right({
-            event: unpur.event,
-            status: unpur.status,
-            labels: unpur.labels,
-            failures: unpur.failures,
-            duration: +unpur.duration,
-        })
-        case "runComplete": return right({
-            event: unpur.event,
-            passed: +unpur.passed,
-            failed: +unpur.failed,
-            duration: +unpur.duration,
-            autoFail: unpur.autoFail
-        })
-        default: left(`${unpur.event} does'nt exits into our system`)
-    }
-}
+export const CompileResult = createUnionType({
+  name: 'CompileResult',
+  types: () => [RunComplete, RunStart, TestCompleted],
+  resolveType(value) {
+    if (value.event === 'runStart') return RunStart;
+    if (value.event === 'testCompleted') return TestCompleted;
 
+    return RunComplete;
+  },
+});
 
+export type CompileResult = RunComplete | RunStart | TestCompleted;

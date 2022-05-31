@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as Either from 'fp-ts/Either';
-import { TestResult } from '../elm/test-result.model';
+import { CompileResult } from '../elm/test-result.model';
 import { ElmService } from '../elm/elm.service';
 
 const newGuid = () => {
@@ -62,7 +62,7 @@ export class ExcerciseService {
   compile(
     id: string,
     str: string,
-  ): Either.Either<string, readonly TestResult[]> {
+  ): Either.Either<string, readonly CompileResult[]> {
     createTempsDir();
     const dirPath = `temps/${newGuid()}`;
 

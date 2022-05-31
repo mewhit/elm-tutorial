@@ -2,7 +2,7 @@
 -- https://github.com/dillonkearns/elm-graphql
 
 
-module Generated.Union.Result exposing (..)
+module Generated.Union.ExcerciseSolutionResult exposing (..)
 
 import Generated.InputObject
 import Generated.Interface
@@ -21,7 +21,7 @@ import Json.Decode as Decode
 
 type alias Fragments decodesTo =
     { onErr : SelectionSet decodesTo Generated.Object.Err
-    , onStudent : SelectionSet decodesTo Generated.Object.Student
+    , onExcerciseSolution : SelectionSet decodesTo Generated.Object.ExcerciseSolution
     }
 
 
@@ -29,11 +29,11 @@ type alias Fragments decodesTo =
 -}
 fragments :
     Fragments decodesTo
-    -> SelectionSet decodesTo Generated.Union.Result
+    -> SelectionSet decodesTo Generated.Union.ExcerciseSolutionResult
 fragments selections____ =
     Object.exhaustiveFragmentSelection
         [ Object.buildFragment "Err" selections____.onErr
-        , Object.buildFragment "Student" selections____.onStudent
+        , Object.buildFragment "ExcerciseSolution" selections____.onExcerciseSolution
         ]
 
 
@@ -43,5 +43,5 @@ update syntax to add `SelectionSet`s for the types you want to handle.
 maybeFragments : Fragments (Maybe decodesTo)
 maybeFragments =
     { onErr = Graphql.SelectionSet.empty |> Graphql.SelectionSet.map (\_ -> Nothing)
-    , onStudent = Graphql.SelectionSet.empty |> Graphql.SelectionSet.map (\_ -> Nothing)
+    , onExcerciseSolution = Graphql.SelectionSet.empty |> Graphql.SelectionSet.map (\_ -> Nothing)
     }

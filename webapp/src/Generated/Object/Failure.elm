@@ -2,7 +2,7 @@
 -- https://github.com/dillonkearns/elm-graphql
 
 
-module Generated.Mutation exposing (..)
+module Generated.Object.Failure exposing (..)
 
 import Generated.InputObject
 import Generated.Interface
@@ -16,16 +16,16 @@ import Graphql.Internal.Encode as Encode exposing (Value)
 import Graphql.Operation exposing (RootMutation, RootQuery, RootSubscription)
 import Graphql.OptionalArgument exposing (OptionalArgument(..))
 import Graphql.SelectionSet exposing (SelectionSet)
-import Json.Decode as Decode exposing (Decoder)
+import Json.Decode as Decode
 
 
-type alias CompileRequiredArguments =
-    { data : Generated.InputObject.ExcerciseSolutionInput }
+message : SelectionSet String Generated.Object.Failure
+message =
+    Object.selectionForField "String" "message" [] Decode.string
 
 
-compile :
-    CompileRequiredArguments
-    -> SelectionSet decodesTo Generated.Union.ExcerciseSolutionResult
-    -> SelectionSet decodesTo RootMutation
-compile requiredArgs____ object____ =
-    Object.selectionForCompositeField "compile" [ Argument.required "data" requiredArgs____.data Generated.InputObject.encodeExcerciseSolutionInput ] object____ Basics.identity
+reason :
+    SelectionSet decodesTo Generated.Object.Reason
+    -> SelectionSet decodesTo Generated.Object.Failure
+reason object____ =
+    Object.selectionForCompositeField "reason" [] object____ Basics.identity

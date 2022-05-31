@@ -12,7 +12,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import * as Either from 'fp-ts/Either';
 import { JwtAuthGuard } from '../auth/jwt/jwt-auth.guard';
 
-import { TestResult } from '../elm/test-result.model';
+import { CompileResult } from '../elm/test-result.model';
 import { ExcerciseService } from './excercise.service';
 import { ExcerciseAuthGuard } from './guard/excercise-auth.guard';
 
@@ -32,14 +32,14 @@ export class ExcerciseController {
     @Param('id') id: string,
     @Body() body: { code: string },
     @Req() req: any,
-  ): Error | readonly TestResult[] {
+  ): Error | readonly CompileResult[] {
     const user = req.user;
     console.log('user', user);
 
     return Either.fold<
       string,
-      readonly TestResult[],
-      Error | readonly TestResult[]
+      readonly CompileResult[],
+      Error | readonly CompileResult[]
     >(
       (x) => ({ error: x }),
       (x) => x,

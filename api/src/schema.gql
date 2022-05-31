@@ -21,6 +21,22 @@ type Student {
   completedExcercise: [ExcerciseSolution!]!
 }
 
+type ReasonData {
+  expected: String!
+  actual: String!
+  comparison: String!
+}
+
+type Reason {
+  type: String!
+  data: ReasonData!
+}
+
+type Failure {
+  message: String!
+  reason: Reason!
+}
+
 type Excercise {
   id: String!
 }
@@ -30,8 +46,49 @@ type ExcerciseSolution {
   The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1.
   """
   Int: Float!
-  solution: String!
+  code: String!
   excercise: Excercise!
   solverId: String!
   student: Student!
+  results: [CompileResult!]!
+}
+
+union CompileResult = RunComplete | RunStart | TestCompleted
+
+type RunComplete {
+  event: String!
+  passed: Int!
+  failed: Int!
+  duration: Float!
+}
+
+type RunStart {
+  event: String!
+  testCount: Int!
+  fuzzRuns: Int!
+  paths: [String!]!
+  initialSeed: String!
+}
+
+type TestCompleted {
+  event: String!
+  status: String!
+  labels: [String!]!
+  failures: [Failure!]!
+  duration: Float!
+}
+
+type Mutation {
+  compile(data: ExcerciseSolutionInput!): ExcerciseSolutionResult!
+}
+
+union ExcerciseSolutionResult = Err | ExcerciseSolution
+
+type Err {
+  err: String!
+}
+
+input ExcerciseSolutionInput {
+  excerciseId: String!
+  code: String!
 }

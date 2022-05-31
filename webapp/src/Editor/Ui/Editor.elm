@@ -17,7 +17,7 @@ import Editor.Data.Registry.Package as Package
 import Editor.Data.Registry.Solution as Solution
 import Editor.Data.Status as Status
 import Editor.Data.Version as Version exposing (Version(..))
-import Editor.Excercise exposing (postSource)
+import Editor.Excercise exposing (GraphData, compileRequest, postSource)
 import Editor.Ui.Icon
 import Elm.Error as Error
 import FeatherIcons as I
@@ -60,7 +60,7 @@ type alias Model =
 
     -- , dependencies : DepsInfo
     , selection : Maybe Error.Region
-    , result : Dict String (WebData CompileResult.CompileResult)
+    , result : Dict String (GraphData CompileResult.CompileResult)
     , sources : Dict String String
     }
 
@@ -124,7 +124,7 @@ type Msg
     | OnSave String (Maybe Error.Region)
     | OnHint (Maybe String)
     | OnCompile String
-    | HandleResult String (WebData CompileResult.CompileResult)
+    | HandleResult String (GraphData CompileResult.CompileResult)
       -- | GotDepsInfo (Result Http.Error Deps.Info)
     | GotSuccess
     | GotErrors E.Value
@@ -160,7 +160,8 @@ update msg model status =
             ( updateImports model
             , Status.compiling status
             , Cmd.batch
-                [ postSource model.config model.source id HandleResult
+                [ 
+                compileRequest model.config model.source id HandleResult
 
                 -- , submitSource model.source
                 ]
@@ -180,6 +181,7 @@ update msg model status =
         --             )
         HandleResult id result ->
             ( { model | result = Dict.insert id result model.result }, Status.success, Cmd.none )
+
 
         GotSuccess ->
             ( model, Status.success, Cmd.none )

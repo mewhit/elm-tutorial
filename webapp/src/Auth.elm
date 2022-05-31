@@ -1,6 +1,6 @@
 module Auth exposing (Sign(..), User, accessToken)
 
-import Http.Extra exposing (AccessToken)
+import Extra.Http.Extra exposing (AccessToken)
 
 
 type alias User =

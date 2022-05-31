@@ -10,11 +10,11 @@ import Dict
 import Editor.Data.CompileResult exposing (hasFail)
 import Editor.Data.Registry.Defaults as Defaults
 import Editor.Data.Version exposing (Version(..))
-import Editor.Page.Editor as Editor
+import Editor.Editor as Editor
+import Extra.Http.Extra exposing (fromString)
 import Html exposing (Html, button, div, span, text)
 import Html.Attributes as Attr exposing (class, disabled, href)
 import Html.Events exposing (onClick)
-import Http.Extra exposing (fromString)
 import RemoteData exposing (RemoteData(..), WebData)
 import Router exposing (routeParser)
 import ScrollTo as ScrollTo
@@ -205,15 +205,15 @@ view model =
                     [ text "loading" ]
 
                 Just _ ->
-                    [ div [ class "fixed w-full h-12 bg-slate-300 z-20 flex flex-row-reverse pr-5 pl-5" ]
-                        [ case model.config.user of
-                            Auth.SignIn _ ->
-                                button [ onClick SignOut ] [ text "Sign out" ]
-
-                            Auth.Signout ->
-                                button [ onClick SignIn ] [ text "Sign in" ]
-                        ]
-                    , UI.page introId
+                    [ --      div [ class "fixed w-full h-12 bg-slate-300 z-20 flex flex-row-reverse pr-5 pl-5" ]
+                      --     [ case model.config.user of
+                      --         Auth.SignIn _ ->
+                      --             button [ onClick SignOut ] [ text "Sign out" ]
+                      --         Auth.Signout ->
+                      --             button [ onClick SignIn ] [ text "Sign in" ]
+                      --     ]
+                      -- ,
+                      UI.page introId
                         [ title [] [ text "Elm Tutorial" ]
                         , div []
                             [ p [] [ text "If the indicator is ", span [ class "text-red-500 " ] [ text "red" ], text ", your code or return is wrong" ]

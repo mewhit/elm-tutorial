@@ -1,21 +1,6 @@
 version: '3.8'
 
 services:
-  elm-tutorial-api:
-    image: elm-tutorial-api:1.0.0
-    build:
-      context: .
-    ports:
-      - 3001:3000
-  neo4j:
-    image: neo4j:4.4
-    environment:
-      - NEO4J_AUTH=neo4j/password
-    ports:
-      - 7474:7474
-      - 7687:7687
-    volumes:
-      - neo4j_data:/data
   mongo:
     image: mongo:4.4.14
     environment:
@@ -27,5 +12,4 @@ services:
       - mongo_data:/data/db
 
 volumes:
-  neo4j_data:
   mongo_data:

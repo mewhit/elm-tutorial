@@ -1,5 +1,6 @@
 import { Directive, Field, Int, ObjectType } from '@nestjs/graphql';
 import { Student } from 'src/student/models/student.model';
+import { CompileResult } from '../../elm/test-result.model';
 import { Excercise } from '../../excercise/models/excercise.model';
 
 @ObjectType()
@@ -9,7 +10,7 @@ export class ExcerciseSolution {
   id: number;
 
   @Field()
-  solution: string;
+  code: string;
 
   @Field(() => Excercise)
   excercise: string;
@@ -18,5 +19,8 @@ export class ExcerciseSolution {
   solverId: string;
 
   @Field(() => Student)
-  student?: Student;
+  student: Student;
+
+  @Field(() => [CompileResult])
+  results: CompileResult[];
 }

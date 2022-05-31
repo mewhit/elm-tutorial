@@ -17,34 +17,30 @@ import Graphql.SelectionSet exposing (SelectionSet)
 import Json.Decode as Decode
 
 
-buildStudentInput :
-    StudentInputRequiredFields
-    -> StudentInput
-buildStudentInput required____ =
-    { firstName = required____.firstName, lastName = required____.lastName, nickName = required____.nickName, email = required____.email }
+buildExcerciseSolutionInput :
+    ExcerciseSolutionInputRequiredFields
+    -> ExcerciseSolutionInput
+buildExcerciseSolutionInput required____ =
+    { excerciseId = required____.excerciseId, code = required____.code }
 
 
-type alias StudentInputRequiredFields =
-    { firstName : String
-    , lastName : String
-    , nickName : String
-    , email : String
+type alias ExcerciseSolutionInputRequiredFields =
+    { excerciseId : String
+    , code : String
     }
 
 
-{-| Type for the StudentInput input object.
+{-| Type for the ExcerciseSolutionInput input object.
 -}
-type alias StudentInput =
-    { firstName : String
-    , lastName : String
-    , nickName : String
-    , email : String
+type alias ExcerciseSolutionInput =
+    { excerciseId : String
+    , code : String
     }
 
 
-{-| Encode a StudentInput into a value that can be used as an argument.
+{-| Encode a ExcerciseSolutionInput into a value that can be used as an argument.
 -}
-encodeStudentInput : StudentInput -> Value
-encodeStudentInput input____ =
+encodeExcerciseSolutionInput : ExcerciseSolutionInput -> Value
+encodeExcerciseSolutionInput input____ =
     Encode.maybeObject
-        [ ( "firstName", Encode.string input____.firstName |> Just ), ( "lastName", Encode.string input____.lastName |> Just ), ( "nickName", Encode.string input____.nickName |> Just ), ( "email", Encode.string input____.email |> Just ) ]
+        [ ( "excerciseId", Encode.string input____.excerciseId |> Just ), ( "code", Encode.string input____.code |> Just ) ]

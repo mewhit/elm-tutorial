@@ -17,9 +17,33 @@ type ExcerciseSolution
     = ExcerciseSolution
 
 
+type Failure
+    = Failure
+
+
+type Reason
+    = Reason
+
+
+type ReasonData
+    = ReasonData
+
+
+type RunComplete
+    = RunComplete
+
+
+type RunStart
+    = RunStart
+
+
 type Service_
     = Service_
 
 
 type Student
     = Student
+
+
+type TestCompleted
+    = TestCompleted

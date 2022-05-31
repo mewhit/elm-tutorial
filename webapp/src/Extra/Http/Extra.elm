@@ -1,4 +1,4 @@
-module Http.Extra exposing (AccessToken, fromString, post)
+module Extra.Http.Extra exposing (AccessToken(..), fromString, post)
 
 import Http exposing (Body, Expect)
 import Json.Decode as D

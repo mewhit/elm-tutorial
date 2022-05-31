@@ -5,9 +5,13 @@
 module Generated.Union exposing (..)
 
 
+type CompileResult
+    = CompileResult
+
+
 type Entity_
     = Entity_
 
 
-type Result
-    = Result
+type ExcerciseSolutionResult
+    = ExcerciseSolutionResult

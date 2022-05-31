@@ -1,4 +1,4 @@
-module Editor.Page.Editor exposing (Model, Msg, init, subscriptions, update, view)
+module Editor.Editor exposing (Model, Msg, init, subscriptions, update, view)
 
 import Browser
 import Browser.Events
@@ -303,8 +303,8 @@ view id_ model =
                         CompileResult.Error err ->
                             Html.pre [] [ text err.error ]
 
-                        CompileResult.Steps steps ->
-                            steps
+                        CompileResult.Success steps ->
+                            steps.steps
                                 |> List.map
                                     (\step ->
                                         case step of
@@ -347,9 +347,6 @@ viewNavigation id_ model =
         , isOpen = model.isMenuOpen
         , left =
             [ Editor.Ui.Navigation.elmLogo
-
-            -- , Editor.Ui.Navigation.lights OnToggleLights model.isLight
-            -- , Editor.Ui.Navigation.packages OnTogglePackages model.isPackageUiOpen
             , Editor.Ui.Editor.viewHint model.editor
             ]
         , right =
@@ -364,9 +361,6 @@ viewNavigation id_ model =
                 Nothing ->
                     text ""
             , Editor.Ui.Navigation.compilation (OnEditorMsg <| Editor.Ui.Editor.OnCompile <| UI.toString id_) model.status
-
-            --, Ui.Navigation.share (OnEditorMsg Editor.Ui.Editor.OnCompile)
-            --, Ui.Navigation.deploy (OnEditorMsg Editor.Ui.Editor.OnCompile)
             ]
         }
 

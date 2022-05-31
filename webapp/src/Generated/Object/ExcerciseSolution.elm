@@ -26,9 +26,9 @@ int =
     Object.selectionForField "Float" "Int" [] Decode.float
 
 
-solution : SelectionSet String Generated.Object.ExcerciseSolution
-solution =
-    Object.selectionForField "String" "solution" [] Decode.string
+code : SelectionSet String Generated.Object.ExcerciseSolution
+code =
+    Object.selectionForField "String" "code" [] Decode.string
 
 
 excercise :
@@ -48,3 +48,10 @@ student :
     -> SelectionSet decodesTo Generated.Object.ExcerciseSolution
 student object____ =
     Object.selectionForCompositeField "student" [] object____ Basics.identity
+
+
+results :
+    SelectionSet decodesTo Generated.Union.CompileResult
+    -> SelectionSet (List decodesTo) Generated.Object.ExcerciseSolution
+results object____ =
+    Object.selectionForCompositeField "results" [] object____ (Basics.identity >> Decode.list)

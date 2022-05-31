@@ -36,15 +36,3 @@ service_ :
     -> SelectionSet decodesTo RootQuery
 service_ object____ =
     Object.selectionForCompositeField "_service" [] object____ Basics.identity
-
-
-type alias AuthorRequiredArguments =
-    { id : String }
-
-
-author :
-    AuthorRequiredArguments
-    -> SelectionSet decodesTo Generated.Object.Student
-    -> SelectionSet decodesTo RootQuery
-author requiredArgs____ object____ =
-    Object.selectionForCompositeField "author" [ Argument.required "id" requiredArgs____.id Encode.string ] object____ Basics.identity
