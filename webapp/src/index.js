@@ -8,6 +8,7 @@ window.addEventListener('load', function () {
     const main = Elm.Main.init({ node: document.getElementById("root"), flags: { domain: process.env.DOMAIN, accessToken } });
     main.ports.saveAccessToken.subscribe((at) => {
         localStorage.setItem(ACCESS_TOKEN, at)
+        main.ports.accessTokenSaved.send(ACCESS_TOKEN);
     })
     main.ports.submitSource.subscribe(function (source, id) {
         var editorNode = document.getElementById(id);

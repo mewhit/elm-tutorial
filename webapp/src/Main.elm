@@ -29,6 +29,9 @@ import Url.Parser
 port saveAccessToken : String -> Cmd msg
 
 
+port accessTokenSaved : (String -> msg) -> Sub msg
+
+
 type alias Model =
     { config : Config
     , editor : Editor.Model
@@ -96,6 +99,7 @@ main =
                     [ Editor.subscriptions model.editor |> Sub.map EditorMsg
                     , Sub.map ScrollToMsg <|
                         ScrollTo.subscriptions model.scrollTo
+                    , accessTokenSaved (\_ -> HandleTokenSaved)
                     ]
         , onUrlChange = UrlChanged
         , onUrlRequest = LinkClicked
@@ -107,6 +111,7 @@ type Msg
     | ScrollToMsg ScrollTo.Msg
     | ScrollToId UI.Id
     | HandleViewport Viewport
+    | HandleTokenSaved
     | SignIn
     | SignOut
     | CloseModal
@@ -150,6 +155,9 @@ update msg model =
 
         HandleViewport viewport ->
             ( { model | viewport = Just viewport }, Cmd.none )
+
+        HandleTokenSaved ->
+            ( model, Nav.reload )
 
         SignIn ->
             ( { model | signUpModal = True }, Cmd.none )

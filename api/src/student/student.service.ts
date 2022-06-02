@@ -19,6 +19,10 @@ export class StudentService {
     return this.studentRepo.findById(id).exec();
   }
 
+  findOneByUserId(userId: string) {
+    return this.studentRepo.findOne({ userId }).exec();
+  }
+
   async create(student: CreateStudent): Promise<Either.Either<Err, Student>> {
     const alreadyExist = await this.studentRepo
       .find({ email: student.email })

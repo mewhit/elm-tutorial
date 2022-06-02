@@ -53,7 +53,6 @@ export class ExcerciseSolutionResolver {
       userId: user?.id,
     });
 
-    console.log(result);
     return Either.fold(
       (x: string) => ({
         err: x,

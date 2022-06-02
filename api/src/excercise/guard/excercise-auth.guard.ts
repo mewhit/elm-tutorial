@@ -16,22 +16,20 @@ export class ExcerciseAuthGuard extends JwtAuthGuard implements CanActivate {
   constructor(reflector: Reflector, config: ConfigService) {
     super(reflector, config);
   }
-  canActivate(context: ExecutionContext): Promise<boolean> {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    const isAuthenticated = await super.canActivate(context);
+    if (isAuthenticated) return true;
+
     if (context.getType() === 'http') {
       const request = context.switchToHttp().getRequest<Request>();
       const id = +request.url.split('/').slice(-1)[0];
-      if (this.validate(id)) return Promise.resolve(true);
+      return this.validate(id);
 
-      return super.canActivate(context);
       // do something that is only important in the context of Microservice requests
     } else if (context.getType<GqlContextType>() === 'graphql') {
       const ctx = GqlExecutionContext.create(context);
       // do something that is only important in the context of GraphQL requests
-      console.log(ctx.getArgs());
-      if (this.validate(+ctx.getArgs()?.data?.excerciseId))
-        return Promise.resolve(true);
-
-      return super.canActivate(context);
+      return this.validate(+ctx.getArgs()?.data?.excerciseId);
     }
   }
 

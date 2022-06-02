@@ -8,6 +8,7 @@ import {
 } from '@nestjs/graphql';
 import * as Either from 'fp-ts/Either';
 import { Err } from 'src/libs/Err';
+import { User } from '../libs/UserDecorator';
 import { StudentInput } from './models/student-input';
 import { Student as StudentModel } from './models/student.model';
 import { Student } from './schemas/student.schema';
@@ -39,8 +40,11 @@ export class StudentResolver {
   }
 
   @Mutation(() => Result, { name: 'studentRegister' })
-  async register(@Args('data') student: StudentInput) {
-    const studentResult = await this.studentService.create(student);
+  async register(@Args('data') student: StudentInput, @User() user: any) {
+    const studentResult = await this.studentService.create({
+      ...student,
+      userId: user.id,
+    });
 
     return Either.fold<Err, Student, Err | Student>(
       (e) => e,

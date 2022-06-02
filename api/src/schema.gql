@@ -73,10 +73,12 @@ type TestCompleted {
 
 type Query {
   solutionByStudentId: [ExcerciseSolution!]!
+  author(id: String!): Student!
 }
 
 type Mutation {
   compile(data: ExcerciseSolutionInput!): ExcerciseSolutionResult!
+  studentRegister(data: StudentInput!): Result!
 }
 
 union ExcerciseSolutionResult = Err | ExcerciseSolution
@@ -88,4 +90,13 @@ type Err {
 input ExcerciseSolutionInput {
   excerciseId: String!
   code: String!
+}
+
+union Result = Err | Student
+
+input StudentInput {
+  firstName: String!
+  lastName: String!
+  nickName: String!
+  email: String!
 }
