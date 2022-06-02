@@ -123,3 +123,33 @@ export const fromString = (str: string): Either<string, CompileResult> => {
       left(`${unpur.event} does'nt exits into our system`);
   }
 };
+
+export const fromMongo = (unpur: any) => {
+  switch (unpur.event) {
+    case 'runStart':
+      return right({
+        event: unpur.event,
+        testCount: +unpur.testCount,
+        fuzzRuns: +unpur.fuzzRuns,
+        globs: unpur.globs,
+        paths: unpur.paths,
+        initialSeed: unpur.initialSeed,
+      });
+    case 'testCompleted':
+      return right({
+        event: unpur.event,
+        status: unpur.status,
+        labels: unpur.labels,
+        failures: unpur.failures,
+        duration: +unpur.duration,
+      });
+    case 'runComplete':
+      return right({
+        event: unpur.event,
+        passed: +unpur.passed,
+        failed: +unpur.failed,
+        duration: +unpur.duration,
+        autoFail: unpur.autoFail,
+      });
+  }
+};

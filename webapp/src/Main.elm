@@ -120,7 +120,7 @@ update msg model =
         EditorMsg editorMsg ->
             let
                 ( editorModel, editorCmd ) =
-                    Editor.update editorMsg model.editor
+                    Editor.update editorMsg model.editor model.config
             in
             ( { model | editor = editorModel }, Cmd.map EditorMsg editorCmd )
 
@@ -205,15 +205,15 @@ view model =
                     [ text "loading" ]
 
                 Just _ ->
-                    [ --      div [ class "fixed w-full h-12 bg-slate-300 z-20 flex flex-row-reverse pr-5 pl-5" ]
-                      --     [ case model.config.user of
-                      --         Auth.SignIn _ ->
-                      --             button [ onClick SignOut ] [ text "Sign out" ]
-                      --         Auth.Signout ->
-                      --             button [ onClick SignIn ] [ text "Sign in" ]
-                      --     ]
-                      -- ,
-                      UI.page introId
+                    [ div [ class "fixed w-full h-12 bg-slate-300 z-20 flex flex-row-reverse pr-5 pl-5" ]
+                        [ case model.config.user of
+                            Auth.SignIn _ ->
+                                button [ onClick SignOut ] [ text "Sign out" ]
+
+                            Auth.Signout ->
+                                button [ onClick SignIn ] [ text "Sign in" ]
+                        ]
+                    , UI.page introId
                         [ title [] [ text "Elm Tutorial" ]
                         , div []
                             [ p [] [ text "If the indicator is ", span [ class "text-red-500 " ] [ text "red" ], text ", your code or return is wrong" ]

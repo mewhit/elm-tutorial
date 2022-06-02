@@ -9,10 +9,6 @@ type Err
     = Err
 
 
-type Excercise
-    = Excercise
-
-
 type ExcerciseSolution
     = ExcerciseSolution
 

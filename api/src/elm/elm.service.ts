@@ -17,7 +17,6 @@ export class ElmService {
         return Either.left(error);
       }
 
-      console.log(err);
       const output = fromBuffer(err.stdout);
 
       return output;

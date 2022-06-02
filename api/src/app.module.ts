@@ -40,7 +40,7 @@ import githubAuthConfig from './auth/github/github.config';
     }),
     GraphQLModule.forRoot<ApolloFederationDriverConfig>({
       driver: ApolloFederationDriver,
-
+      context: ({ req }) => ({ req }),
       autoSchemaFile: `${process.cwd()}/src/schema.gql`,
       path: 'graphql',
       buildSchemaOptions: {

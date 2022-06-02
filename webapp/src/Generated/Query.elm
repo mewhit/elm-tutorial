@@ -36,3 +36,10 @@ service_ :
     -> SelectionSet decodesTo RootQuery
 service_ object____ =
     Object.selectionForCompositeField "_service" [] object____ Basics.identity
+
+
+solutionByStudentId :
+    SelectionSet decodesTo Generated.Object.ExcerciseSolution
+    -> SelectionSet (List decodesTo) RootQuery
+solutionByStudentId object____ =
+    Object.selectionForCompositeField "solutionByStudentId" [] object____ (Basics.identity >> Decode.list)

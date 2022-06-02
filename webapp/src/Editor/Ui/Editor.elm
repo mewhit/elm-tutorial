@@ -10,6 +10,7 @@ import Config exposing (Config)
 import Dict exposing (Dict)
 import Editor.Data.CompileResult as CompileResult
 import Editor.Data.Deps as Deps
+import Editor.Data.ExcerciseSolution exposing (ExcerciseSolution)
 import Editor.Data.Header as Header
 import Editor.Data.Hint as Hint
 import Editor.Data.Problem as Problem
@@ -17,7 +18,7 @@ import Editor.Data.Registry.Package as Package
 import Editor.Data.Registry.Solution as Solution
 import Editor.Data.Status as Status
 import Editor.Data.Version as Version exposing (Version(..))
-import Editor.Excercise exposing (GraphData, compileRequest, postSource)
+import Editor.Excercise exposing (GraphData, compileRequest, getSolutionsRequest, postSource)
 import Editor.Ui.Icon
 import Elm.Error as Error
 import FeatherIcons as I
@@ -100,12 +101,12 @@ init config source =
     case Header.parse source of
         Nothing ->
             ( defaults
-            , Cmd.none
+            , getSolutionsRequest config HandleResults
             )
 
         Just ( imports, importEnd ) ->
             ( { defaults | imports = imports, importEnd = importEnd }
-            , Cmd.none
+            , getSolutionsRequest config HandleResults
             )
 
 
@@ -125,13 +126,18 @@ type Msg
     | OnHint (Maybe String)
     | OnCompile String
     | HandleResult String (GraphData CompileResult.CompileResult)
+    | HandleResults (GraphData (List ExcerciseSolution))
       -- | GotDepsInfo (Result Http.Error Deps.Info)
     | GotSuccess
     | GotErrors E.Value
 
 
-update : Msg -> Model -> Status.Status -> ( Model, Status.Status, Cmd Msg )
-update msg model status =
+update : Msg -> Model -> Status.Status -> Config -> ( Model, Status.Status, Cmd Msg )
+update msg m status config =
+    let
+        model =
+            { m | config = config }
+    in
     case msg of
         OnChange id source selection ->
             ( { model
@@ -160,9 +166,9 @@ update msg model status =
             ( updateImports model
             , Status.compiling status
             , Cmd.batch
-                [ 
-                compileRequest model.config model.source id HandleResult
+                [ compileRequest model.config model.source id HandleResult
 
+                -- , postSource model.config model.source id HandleResult2
                 -- , submitSource model.source
                 ]
             )
@@ -182,6 +188,24 @@ update msg model status =
         HandleResult id result ->
             ( { model | result = Dict.insert id result model.result }, Status.success, Cmd.none )
 
+        HandleResults results ->
+            ( { model
+                | result =
+                    results
+                        |> RemoteData.withDefault []
+                        |> List.map (\s -> ( s.excerciseId, RemoteData.Success (CompileResult.Success { code = s.code, steps = s.results }) ))
+                        |> Dict.fromList
+                        |> Dict.union model.result
+                , sources =
+                    results
+                        |> RemoteData.withDefault []
+                        |> List.map (\s -> ( s.excerciseId, s.code ))
+                        |> Dict.fromList
+                        |> Dict.union model.sources
+              }
+            , Status.success
+            , Cmd.none
+            )
 
         GotSuccess ->
             ( model, Status.success, Cmd.none )
@@ -261,9 +285,9 @@ viewSolutionInput solution hash =
 
 viewEditor_ : UI.Id -> String -> Maybe Error.Region -> Bool -> Int -> Html Msg
 viewEditor_ id_ source selection lights importEnd =
-    node "code-editor"
-        [ property "identifier" <| E.string <| UI.toString id_ ++ "code-editor"
-        , attribute "id" <| UI.toString id_ ++ "code-editor"
+    node
+        "code-editor"
+        [ attribute "id" <| UI.toString id_ ++ "code-editor"
         , property "source" (E.string source)
         , property "theme" (E.string "dark")
         , property "importEnd" (E.int importEnd)

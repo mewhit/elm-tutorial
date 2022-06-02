@@ -1,8 +1,9 @@
-module Editor.Excercise exposing (..)
+module Editor.Excercise exposing (GraphData, compileRequest, getSolutionsRequest, postSource)
 
 import Auth exposing (accessToken)
 import Config exposing (Config)
 import Editor.Data.CompileResult exposing (CompileError, CompileResult(..), RunStartModel, TestResult(..), TestStep(..), decode)
+import Editor.Data.ExcerciseSolution exposing (Excercise, ExcerciseSolution)
 import Editor.Data.Problem exposing (generic)
 import Extra.Http.Extra exposing (AccessToken(..), post)
 import Generated.Mutation as Mutation
@@ -15,6 +16,7 @@ import Generated.Object.ReasonData
 import Generated.Object.RunComplete
 import Generated.Object.RunStart
 import Generated.Object.TestCompleted
+import Generated.Query as Query
 import Generated.Union
 import Generated.Union.CompileResult
 import Generated.Union.ExcerciseSolutionResult
@@ -23,7 +25,6 @@ import Graphql.Operation exposing (RootMutation)
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet, with)
 import Json.Encode as E
 import RemoteData exposing (RemoteData, WebData)
-import Svg exposing (g)
 
 
 postSource : Config -> String -> String -> (String -> WebData CompileResult -> msg) -> Cmd msg
@@ -48,6 +49,24 @@ toHeader token =
 
 type alias GraphData a =
     RemoteData (Graphql.Http.Error a) a
+
+
+getSolutionsRequest : Config -> (GraphData (List ExcerciseSolution) -> msg) -> Cmd msg
+getSolutionsRequest config handler =
+    Query.solutionByStudentId excerciseSolutionSelection
+        |> Graphql.Http.queryRequest (config.domain ++ "/graphql")
+        |> Graphql.Http.withHeader "Authorization" (config.user |> accessToken |> Maybe.map toHeader |> Maybe.withDefault "")
+        |> Graphql.Http.send (RemoteData.fromResult >> handler)
+
+
+excerciseSolutionSelection : SelectionSet ExcerciseSolution Generated.Object.ExcerciseSolution
+excerciseSolutionSelection =
+    SelectionSet.succeed ExcerciseSolution
+        |> with Generated.Object.ExcerciseSolution.id
+        |> with Generated.Object.ExcerciseSolution.code
+        |> with Generated.Object.ExcerciseSolution.excerciseId
+        |> with Generated.Object.ExcerciseSolution.userId
+        |> with (Generated.Object.ExcerciseSolution.results toTest)
 
 
 compileRequest : Config -> String -> String -> (String -> GraphData CompileResult -> msg) -> Cmd msg

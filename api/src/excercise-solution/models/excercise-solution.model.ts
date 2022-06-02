@@ -6,17 +6,17 @@ import { Excercise } from '../../excercise/models/excercise.model';
 @ObjectType()
 @Directive('@key(fields: "id")')
 export class ExcerciseSolution {
-  @Field(Int)
-  id: number;
+  @Field({ nullable: true })
+  id: string;
 
   @Field()
   code: string;
 
-  @Field(() => Excercise)
-  excercise: string;
+  @Field()
+  excerciseId: string;
 
   @Field()
-  solverId: string;
+  userId: string;
 
   @Field(() => Student)
   student: Student;

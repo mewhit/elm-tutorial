@@ -21,7 +21,6 @@ import Json.Decode as Decode
 
 type alias Fragments decodesTo =
     { onStudent : SelectionSet decodesTo Generated.Object.Student
-    , onExcercise : SelectionSet decodesTo Generated.Object.Excercise
     , onExcerciseSolution : SelectionSet decodesTo Generated.Object.ExcerciseSolution
     }
 
@@ -34,7 +33,6 @@ fragments :
 fragments selections____ =
     Object.exhaustiveFragmentSelection
         [ Object.buildFragment "Student" selections____.onStudent
-        , Object.buildFragment "Excercise" selections____.onExcercise
         , Object.buildFragment "ExcerciseSolution" selections____.onExcerciseSolution
         ]
 
@@ -45,6 +43,5 @@ update syntax to add `SelectionSet`s for the types you want to handle.
 maybeFragments : Fragments (Maybe decodesTo)
 maybeFragments =
     { onStudent = Graphql.SelectionSet.empty |> Graphql.SelectionSet.map (\_ -> Nothing)
-    , onExcercise = Graphql.SelectionSet.empty |> Graphql.SelectionSet.map (\_ -> Nothing)
     , onExcerciseSolution = Graphql.SelectionSet.empty |> Graphql.SelectionSet.map (\_ -> Nothing)
     }

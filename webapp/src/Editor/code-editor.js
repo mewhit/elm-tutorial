@@ -138,6 +138,66 @@ var debounce = function (func) {
 
 const _editors = {};
 
+export class CodeTest extends HTMLElement {
+  _source = null;
+  _editor = null;
+  constructor() {
+    super()
+  }
+
+  connectedCallback() {
+    this.init();
+  }
+
+  init() {
+    // var sendChangeEvent = debounce((function () {
+    //   var previous = this._source;
+    //   this._source = this._editor.getValue();
+    //   if (previous === this._source) return;
+    //   this.dispatchEvent(new Event('change'));
+    // }).bind(this));
+
+    // var sendSaveEvent = debounce((function () {
+    //   this.dispatchEvent(new Event('save'));
+    // }).bind(this));
+
+    // var sendHintEvent = (function () {
+    //   this.dispatchEvent(new Event('hint'));
+    // }).bind(this);
+
+    this._editor = CodeMirror((elt => {
+      this.appendChild(elt);
+    }), {
+      mode: "elm",
+      lineNumbers: true,
+      keyMap: "sublime",
+      matchBrackets: true,
+      autoCloseBrackets: true,
+      styleActiveLine: true,
+      theme: "dark",
+      value: this._source,
+      tabSize: 2,
+      indentWithTabs: false,
+      extraKeys: {
+        "Tab": handleTab,
+        "Shift-Tab": handleUntab,
+        "Cmd-S": function (cm) { sendSaveEvent(); },
+        "Ctrl-Enter": function (cm) { sendSaveEvent(); }
+      }
+    })
+  }
+
+  get source() {
+    this._source = source;
+  }
+  set source(u) {
+
+    this._source = u;
+  }
+}
+
+
+
 export class CodeEditorV2 extends HTMLElement {
 
   _theme = 'light';
@@ -146,14 +206,13 @@ export class CodeEditorV2 extends HTMLElement {
   _start = null;
   _end = null;
   _importEnd = 0;
-  _identifier = null;
 
   constructor() {
     super()
   }
 
   connectedCallback() { this.init(); }
-  static get observedAttributes() { return ['identifier']; }
+
 
   init() {
     var sendChangeEvent = debounce((function () {
@@ -172,7 +231,7 @@ export class CodeEditorV2 extends HTMLElement {
     }).bind(this);
 
     _editors[this.getAttribute("id")] = CodeMirror((elt => {
-      this.parentNode.replaceChild(elt, this)
+      this.appendChild(elt, this)
     }), {
       mode: "elm",
       lineNumbers: true,
@@ -191,7 +250,6 @@ export class CodeEditorV2 extends HTMLElement {
         "Ctrl-Enter": function (cm) { sendSaveEvent(); }
       }
     })
-
     _editors[this.getAttribute("id")].on('changes', sendChangeEvent);
     // _editors[this.getAttribute("id")].focus();
     requestIdleCallback((function () {
@@ -234,17 +292,9 @@ export class CodeEditorV2 extends HTMLElement {
     }
   }
 
-  get identifier() {
-    return this._identifier;
-  }
-  set identifier(updated) {
-    var oldidentifier = this._identifier;
-    this._identifier = updated;
 
-    if (updated !== oldidentifier) {
-      // this._updateidentifier();
-    }
-  }
+
+
 
   // PROPERTY: SOURCE
 

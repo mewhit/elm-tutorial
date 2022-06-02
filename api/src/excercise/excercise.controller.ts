@@ -20,7 +20,7 @@ interface Error {
   error: string;
 }
 
-@UseGuards(ExcerciseAuthGuard || JwtAuthGuard)
+@UseGuards(JwtAuthGuard || ExcerciseAuthGuard)
 @Controller('excercise')
 export class ExcerciseController {
   constructor(private excerciseService: ExcerciseService) {}
@@ -31,11 +31,7 @@ export class ExcerciseController {
   run(
     @Param('id') id: string,
     @Body() body: { code: string },
-    @Req() req: any,
   ): Error | readonly CompileResult[] {
-    const user = req.user;
-    console.log('user', user);
-
     return Either.fold<
       string,
       readonly CompileResult[],

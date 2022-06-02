@@ -145,13 +145,13 @@ type Msg
     | OnJsError String
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+update : Msg -> Model -> Config -> ( Model, Cmd Msg )
+update msg model config =
     case msg of
         OnEditorMsg subMsg ->
             let
                 ( editor, status, editorCmd ) =
-                    Editor.Ui.Editor.update subMsg model.editor model.status
+                    Editor.Ui.Editor.update subMsg model.editor model.status config
 
                 packageUi =
                     if Status.isCompiling status then

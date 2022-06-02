@@ -19,11 +19,9 @@ import Graphql.SelectionSet exposing (SelectionSet)
 import Json.Decode as Decode
 
 
-{-| The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1.
--}
-int : SelectionSet Float Generated.Object.ExcerciseSolution
-int =
-    Object.selectionForField "Float" "Int" [] Decode.float
+id : SelectionSet String Generated.Object.ExcerciseSolution
+id =
+    Object.selectionForField "String" "id" [] Decode.string
 
 
 code : SelectionSet String Generated.Object.ExcerciseSolution
@@ -31,16 +29,14 @@ code =
     Object.selectionForField "String" "code" [] Decode.string
 
 
-excercise :
-    SelectionSet decodesTo Generated.Object.Excercise
-    -> SelectionSet decodesTo Generated.Object.ExcerciseSolution
-excercise object____ =
-    Object.selectionForCompositeField "excercise" [] object____ Basics.identity
+excerciseId : SelectionSet String Generated.Object.ExcerciseSolution
+excerciseId =
+    Object.selectionForField "String" "excerciseId" [] Decode.string
 
 
-solverId : SelectionSet String Generated.Object.ExcerciseSolution
-solverId =
-    Object.selectionForField "String" "solverId" [] Decode.string
+userId : SelectionSet String Generated.Object.ExcerciseSolution
+userId =
+    Object.selectionForField "String" "userId" [] Decode.string
 
 
 student :
