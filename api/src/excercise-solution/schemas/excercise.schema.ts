@@ -24,7 +24,6 @@ export class CreateExcerciseSolution {
 
 @Schema()
 export class ExcerciseSolution extends CreateExcerciseSolution {
-  @Prop()
   _id: S.Types.ObjectId;
 
   @Prop({ type: {}, default: [], transform: fromMongo })

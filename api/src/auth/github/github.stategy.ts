@@ -29,15 +29,16 @@ export class GithubStrategy extends PassportStrategy(Strategy) {
     if (!profile.id) return null;
 
     try {
-      const user = this.userService.findByGitHubId(profile.id);
+      const user = await this.userService.findByGitHubId(profile.id);
       if (!user) {
-        return this.userService.create({
+        return await this.userService.create({
           githubId: profile.id,
           username: profile.username,
         });
       }
       return user;
     } catch (e) {
+      console.log('error', e);
       return null;
     }
   }
