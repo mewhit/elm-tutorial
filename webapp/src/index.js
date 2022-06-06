@@ -5,7 +5,7 @@ const ACCESS_TOKEN = "accessToken"
 window.addEventListener('load', function () {
     const accessToken = this.localStorage.getItem(ACCESS_TOKEN) || ""
 
-    const main = Elm.Main.init({ node: document.getElementById("root"), flags: { domain: process.env.DOMAIN, accessToken } });
+    const main = Elm.Main.init({ node: document.getElementById("root"), flags: { domain: process.env.DOMAIN, accessToken, now: Date.now() } });
     main.ports.saveAccessToken.subscribe((at) => {
         localStorage.setItem(ACCESS_TOKEN, at)
         main.ports.accessTokenSaved.send(ACCESS_TOKEN);

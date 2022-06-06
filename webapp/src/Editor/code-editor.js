@@ -138,64 +138,6 @@ var debounce = function (func) {
 
 const _editors = {};
 
-export class CodeTest extends HTMLElement {
-  _source = null;
-  _editor = null;
-  constructor() {
-    super()
-  }
-
-  connectedCallback() {
-    this.init();
-  }
-
-  init() {
-    // var sendChangeEvent = debounce((function () {
-    //   var previous = this._source;
-    //   this._source = this._editor.getValue();
-    //   if (previous === this._source) return;
-    //   this.dispatchEvent(new Event('change'));
-    // }).bind(this));
-
-    // var sendSaveEvent = debounce((function () {
-    //   this.dispatchEvent(new Event('save'));
-    // }).bind(this));
-
-    // var sendHintEvent = (function () {
-    //   this.dispatchEvent(new Event('hint'));
-    // }).bind(this);
-
-    this._editor = CodeMirror((elt => {
-      this.appendChild(elt);
-    }), {
-      mode: "elm",
-      lineNumbers: true,
-      keyMap: "sublime",
-      matchBrackets: true,
-      autoCloseBrackets: true,
-      styleActiveLine: true,
-      theme: "dark",
-      value: this._source,
-      tabSize: 2,
-      indentWithTabs: false,
-      extraKeys: {
-        "Tab": handleTab,
-        "Shift-Tab": handleUntab,
-        "Cmd-S": function (cm) { sendSaveEvent(); },
-        "Ctrl-Enter": function (cm) { sendSaveEvent(); }
-      }
-    })
-  }
-
-  get source() {
-    this._source = source;
-  }
-  set source(u) {
-
-    this._source = u;
-  }
-}
-
 
 
 export class CodeEditorV2 extends HTMLElement {

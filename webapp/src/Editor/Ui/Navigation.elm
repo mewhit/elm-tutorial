@@ -81,7 +81,7 @@ toggleOpen onClick_ isMenuOpen =
                 I.chevronUp
         , iconColor = Nothing
         , labelColor = Nothing
-        , label = Nothing
+        , label = Just "Toggle Compilation result"
         , alt =
             if isMenuOpen then
                 "Close menu"
@@ -131,46 +131,10 @@ compilation onClick_ status =
     let
         ( icon, iconColor, label ) =
             case status of
-                Status.Changed ->
+                _ ->
                     ( I.refreshCcw
                     , Just "blue"
-                    , "Rebuild"
-                    )
-
-                Status.Compiling ->
-                    ( I.loader
-                    , Nothing
-                    , "Compiling..."
-                    )
-
-                Status.Success ->
-                    ( I.check
-                    , Just "green"
-                    , "Success"
-                    )
-
-                Status.HasProblems _ ->
-                    ( I.x
-                    , Just "red"
-                    , "Problems found"
-                    )
-
-                Status.HasProblemsButChanged _ ->
-                    ( I.refreshCcw
-                    , Just "blue"
-                    , "Rebuild"
-                    )
-
-                Status.HasProblemsButRecompiling _ ->
-                    ( I.loader
-                    , Nothing
-                    , "Compiling..."
-                    )
-
-                Status.Failed _ ->
-                    ( I.x
-                    , Just "red"
-                    , "Try again later."
+                    , "Compile"
                     )
     in
     Editor.Ui.Icon.button [ style "padding" "0 10px" ]

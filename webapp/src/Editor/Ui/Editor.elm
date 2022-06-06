@@ -95,7 +95,7 @@ init config source =
             -- , dependencies = Loading
             , selection = Nothing
             , result = Dict.empty
-            , sources = [ ( "4", "pipe: Int -> Int -> Int -> Int -> Int -> Int\npipe n1 n2 n3 n4 n5 =\n (n1 + n2) * (n3 - n4) / n5\n " ) ] |> Dict.fromList
+            , sources = [] |> Dict.fromList
             }
     in
     case Header.parse source of
@@ -163,7 +163,7 @@ update msg m status config =
             )
 
         OnCompile id ->
-            ( updateImports model
+            ( updateImports { model | result = Dict.remove id model.result }
             , Status.compiling status
             , Cmd.batch
                 [ compileRequest model.config model.source id HandleResult

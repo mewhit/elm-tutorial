@@ -15,10 +15,12 @@ import Extra.Http.Extra exposing (fromString)
 import Html exposing (Html, button, div, span, text)
 import Html.Attributes as Attr exposing (class, disabled, href)
 import Html.Events exposing (onClick)
+import Jwt
 import RemoteData exposing (RemoteData(..), WebData)
 import Router exposing (routeParser)
 import ScrollTo as ScrollTo
 import Task
+import Time
 import UI.Modal exposing (modal)
 import UI.Typographie exposing (p, title)
 import UI.UI as UI
@@ -44,11 +46,11 @@ type alias Model =
     }
 
 
-main : Program { domain : String, accessToken : String } Model Msg
+main : Program { domain : String, accessToken : String, now : Int } Model Msg
 main =
     Browser.application
         { init =
-            \{ domain, accessToken } ->
+            \{ domain, accessToken, now } ->
                 \url ->
                     \key ->
                         let
@@ -56,6 +58,9 @@ main =
                                 { domain = domain
                                 , user =
                                     if String.isEmpty accessToken then
+                                        Auth.Signout
+
+                                    else if Jwt.isExpired (now |> Time.millisToPosix) accessToken |> Result.withDefault True then
                                         Auth.Signout
 
                                     else
@@ -240,11 +245,13 @@ view model =
                     , excerciseOne model
                     , excerciseTwo model
                     , excerciseThree model
+                    , excerciseFour model
+                    , excerciseFive model
                     , if model.signUpModal then
                         modal
                             { onClose = CloseModal
                             , content =
-                                [ div [ class "p-10" ] [ UI.Typographie.subtitle [] [ text "Sign In" ], p [ class "" ] [ text "Is useless for now! But sometime we gonna keep your progress and comparing score" ] ]
+                                [ div [ class "p-10" ] [ UI.Typographie.subtitle [] [ text "Sign In" ], p [ class "" ] [ text "Keep track of your solved excercise, and one day you will compare with others" ] ]
                                 , Html.a
                                     [ Attr.href <| model.config.domain ++ "/auth/github"
                                     , Attr.class "bg-gray-500 bg-opacity-75 text-white p-2 rounded"
@@ -255,8 +262,6 @@ view model =
 
                       else
                         text ""
-
-                    -- , excerciseFour model
                     ]
         ]
     }
@@ -292,6 +297,11 @@ excerciseFourId =
     UI.toId "4"
 
 
+excerciseFiveId : UI.Id
+excerciseFiveId =
+    UI.toId "5"
+
+
 navButton : UI.Id -> String -> Bool -> Html Msg
 navButton id_ text_ disabled =
     if disabled then
@@ -301,16 +311,11 @@ navButton id_ text_ disabled =
         Html.button [ class "bg-blue-300 h-16 pl-5 pr-5 rounded text-xl", Attr.disabled disabled, onClick <| ScrollToId id_ ] [ text text_ ]
 
 
-
--- ++ excerciseTwo model.randomPair
--- ++ excerciseThree model.randomPair
-
-
 excerciseOne : Model -> Html Msg
 excerciseOne model =
     [ navButton introId "Previous" False
     , Html.h3 [ class "text-3xl text-cyan-900" ] [ text "Excercise 1" ]
-    , Html.p [ class "text-lg text-yellow-900" ]
+    , UI.Typographie.explaination []
         [ text "Create simple function named "
         , span [ class "text-blue-900" ] [ text "const0" ]
         , text " that take "
@@ -341,7 +346,7 @@ excerciseOne model =
 excerciseTwo : Model -> Html Msg
 excerciseTwo model =
     [ navButton (toScrollId excerciseOneId) "Previous" False
-    , Html.p [ class "text-lg text-yellow-900" ]
+    , UI.Typographie.explaination []
         [ text "Create simple function named "
         , span [ class "text-blue-900" ] [ text "copy" ]
         , text " that take "
@@ -368,7 +373,7 @@ excerciseTwo model =
 excerciseThree : Model -> Html Msg
 excerciseThree model =
     [ navButton (toScrollId excerciseTwoId) "Previous" False
-    , Html.p [ class "text-lg text-yellow-900" ]
+    , UI.Typographie.explaination []
         [ text "Last one of creating simple function. Create simple function named "
         , span [ class "text-blue-900" ] [ text "add" ]
         , text " that take "
@@ -398,13 +403,13 @@ excerciseThree model =
 excerciseFour : Model -> Html Msg
 excerciseFour model =
     [ navButton (toScrollId excerciseThreeId) "Previous" False
-    , Html.p [ class "text-lg text-yellow-900" ]
-        [ text "Learn how to use "
-        , span [ class "text-blue-900" ] [ Html.a [ href "https://package.elm-lang.org/packages/elm/core/latest/Basics#(|%3E)" ] [ text "pipe " ] ]
-        , text "replace all "
-        , span [ class "text-blue-900" ] [ text "bracket () " ]
-        , text "by using only "
-        , span [ class "text-blue-900" ] [ text "|>" ]
+    , UI.Typographie.explaination []
+        [ text "Time to learn how to create "
+        , span [ class "text-blue-900" ] [ text "type alias " ]
+        , text "I want you to create structure type alias named"
+        , span [ class "text-blue-900" ] [ text " Math " ]
+        , text "with contains"
+        , span [ class "text-blue-900" ] [ text " 2 properties : equation as String and result as Int " ]
         ]
     , Editor.view excerciseFourId model.editor |> Html.map EditorMsg
     , case Dict.get (UI.toString excerciseFourId) model.editor.editor.result of
@@ -417,5 +422,57 @@ excerciseFour model =
 
         _ ->
             UI.pill "bg-yellow-600" "Waiting"
+    , navButton
+        (toScrollId excerciseFiveId)
+        "Next"
+        (model.editor.editor.result |> Dict.get (UI.toString excerciseFourId) |> Maybe.withDefault NotAsked |> RemoteData.map hasFail |> RemoteData.withDefault True)
     ]
         |> UI.page (toScrollId excerciseFourId)
+
+
+excerciseFive : Model -> Html Msg
+excerciseFive model =
+    [ navButton (toScrollId excerciseFourId) "Previous" False
+    , UI.Typographie.explaination []
+        (toHtml
+            [ Normal "Time to learn"
+            , HighLight "Type"
+            , Normal ", I want you to create"
+            , HighLight "type named Operator"
+            , Normal "containing this three values"
+            , HighLight "Add and Minus and (Number Int)"
+            ]
+        )
+    , Editor.view excerciseFiveId model.editor |> Html.map EditorMsg
+    , case Dict.get (UI.toString excerciseFiveId) model.editor.editor.result of
+        Just (Success result) ->
+            if hasFail result then
+                UI.pill "bg-red-600" "Fail"
+
+            else
+                UI.pill "bg-green-600" "Success"
+
+        _ ->
+            UI.pill "bg-yellow-600" "Waiting"
+    ]
+        |> UI.page (toScrollId excerciseFiveId)
+
+
+type Explaination
+    = HighLight String
+    | Normal String
+
+
+toHtml : List Explaination -> List (Html Msg)
+toHtml explains =
+    let
+        html =
+            \s ->
+                case s of
+                    HighLight str ->
+                        span [ class "text-blue-900" ] [ text str ]
+
+                    Normal str ->
+                        text str
+    in
+    explains |> List.intersperse (Normal " ") |> List.map html

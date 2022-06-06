@@ -17,3 +17,8 @@ subtitle attrs htmls =
 p : List (Html.Attribute msg) -> List (Html msg) -> Html msg
 p attrs htmls =
     Html.p (class "text-lg text-white" :: attrs) htmls
+
+
+explaination : List (Html.Attribute msg) -> List (Html msg) -> Html msg
+explaination attrs htmls =
+    Html.p (class "text-lg text-yellow-900 max-w-3xl" :: attrs) htmls

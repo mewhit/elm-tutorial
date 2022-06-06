@@ -202,7 +202,7 @@ update window msg model =
 -- VIEW
 
 
-view : (Msg -> msg) -> Window -> Model -> List (Html msg) -> List (Html msg) -> Html msg
+view : (Msg -> msg) -> Window -> Model -> List (Html msg) -> Maybe (List (Html msg)) -> Html msg
 view onMsg window model leftChildren rightChildren =
     let
         percent =
@@ -210,8 +210,8 @@ view onMsg window model leftChildren rightChildren =
     in
     div
         [ id "double-pane"
-        , style "width" "100%"
-        , style "display" "flex"
+        , style "width" "100% "
+        , class "relative block"
         ]
         [ viewLeft onMsg window model percent leftChildren
 
@@ -260,33 +260,39 @@ viewLeft onMsg window model percent =
             ++ events
 
 
-viewRight : Window -> Model -> Float -> List (Html msg) -> Html msg
-viewRight window model percent =
-    div
-        [ id "right-side"
-        , style "width" (String.fromFloat (100 - percent) ++ "%")
-        , style "pointer-events"
-            (if isMoving model then
-                "none"
+viewRight : Window -> Model -> Float -> Maybe (List (Html msg)) -> Html msg
+viewRight window model percent htmls =
+    case htmls of
+        Nothing ->
+            text ""
 
-             else
-                "auto"
-            )
-        , style "user-select"
-            (if isMoving model then
-                "none"
+        Just html ->
+            div
+                [ id "right-side"
+                , class "w-full absolute top-8 z-20 h-full overflow-x-hidden opacity-75 bg-slate-400"
+                , style "pointer-events"
+                    (if isMoving model then
+                        "none"
 
-             else
-                "auto"
-            )
-        , style "transition"
-            (if isMoving model then
-                "none"
+                     else
+                        "auto"
+                    )
+                , style "user-select"
+                    (if isMoving model then
+                        "none"
 
-             else
-                "width 0.5s"
-            )
-        ]
+                     else
+                        "auto"
+                    )
+                , style "transition"
+                    (if isMoving model then
+                        "none"
+
+                     else
+                        "width 0.5s"
+                    )
+                ]
+                html
 
 
 viewDivider : Window -> Model -> Float -> Html Msg

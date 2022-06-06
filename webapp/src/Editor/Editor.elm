@@ -28,6 +28,7 @@ import Html.Lazy exposing (..)
 import Http
 import Json.Decode as D
 import Json.Encode as E
+import Maybe.Extra
 import RemoteData exposing (RemoteData(..))
 import Svg exposing (svg, use)
 import Svg.Attributes as SA exposing (xlinkHref)
@@ -160,7 +161,18 @@ update msg model config =
                     else
                         model.packageUi
             in
-            ( { model | editor = editor, status = status, packageUi = packageUi }
+            ( { model
+                | editor = editor
+                , status = status
+                , packageUi = packageUi
+                , isMenuOpen =
+                    case status of
+                        Status.Compiling ->
+                            True
+
+                        _ ->
+                            model.isMenuOpen
+              }
             , Cmd.batch
                 [ Cmd.map OnEditorMsg editorCmd
                 , case status of
@@ -293,46 +305,57 @@ view id_ model =
         [ Editor.Ui.ColumnDivider.view OnDividerMsg
             model.window
             model.divider
-            [ Editor.Ui.Editor.viewEditor id_ (Editor.Ui.Package.getSolution model.packageUi) model.isLight model.editor
+            [ viewNavigation id_ model
+            , Editor.Ui.Editor.viewEditor id_ (Editor.Ui.Package.getSolution model.packageUi) model.isLight model.editor
                 |> Html.map OnEditorMsg
-            , viewNavigation id_ model
             ]
-            [ case Dict.get (id_ |> UI.toString) model.editor.result of
-                Just (Success result) ->
-                    case result of
-                        CompileResult.Error err ->
-                            Html.pre [] [ text err.error ]
+          <|
+            if model.isMenuOpen then
+                case Dict.get (id_ |> UI.toString) model.editor.result of
+                    Just (Success result) ->
+                        case result of
+                            CompileResult.Error err ->
+                                Just [ Html.pre [] [ text err.error ] ]
 
-                        CompileResult.Success steps ->
-                            steps.steps
-                                |> List.map
-                                    (\step ->
-                                        case step of
-                                            CompileResult.TestCompleted r ->
-                                                case r of
-                                                    CompileResult.TestFail _ ->
-                                                        text "Fail"
+                            CompileResult.Success steps ->
+                                steps.steps
+                                    |> List.map
+                                        (\step ->
+                                            case step of
+                                                CompileResult.TestCompleted r ->
+                                                    case r of
+                                                        CompileResult.TestFail { labels } ->
+                                                            Just (div [ class "flex flex-col" ] [ labels |> String.join " " |> text ])
 
-                                                    CompileResult.TestPass _ ->
-                                                        text "Pass"
+                                                        CompileResult.TestPass _ ->
+                                                            Nothing
 
-                                            _ ->
-                                                text ""
-                                    )
-                                |> div [ class "flex flex-col" ]
+                                                _ ->
+                                                    Nothing
+                                        )
+                                    |> Maybe.Extra.values
+                                    |> (\s ->
+                                            if List.isEmpty s then
+                                                Nothing
 
-                Just NotAsked ->
-                    text "wait compilation"
+                                            else
+                                                Just s
+                                       )
 
-                Just Loading ->
-                    text "loader"
+                    Just NotAsked ->
+                        Just [ text "wait compilation" ]
 
-                Just (Failure _) ->
-                    text "Fail"
+                    Just Loading ->
+                        Just [ text "loader" ]
 
-                Nothing ->
-                    text ""
-            ]
+                    Just (Failure _) ->
+                        Just [ text "Fail" ]
+
+                    Nothing ->
+                        Nothing
+
+            else
+                Nothing
         ]
 
 
@@ -346,8 +369,8 @@ viewNavigation id_ model =
         { isLight = model.isLight
         , isOpen = model.isMenuOpen
         , left =
-            [ Editor.Ui.Navigation.elmLogo
-            , Editor.Ui.Editor.viewHint model.editor
+            [ Editor.Ui.Editor.viewHint model.editor
+            , Editor.Ui.Navigation.compilation (OnEditorMsg <| Editor.Ui.Editor.OnCompile <| UI.toString id_) model.status
             ]
         , right =
             [ case getProblems model of
@@ -360,7 +383,7 @@ viewNavigation id_ model =
 
                 Nothing ->
                     text ""
-            , Editor.Ui.Navigation.compilation (OnEditorMsg <| Editor.Ui.Editor.OnCompile <| UI.toString id_) model.status
+            , Editor.Ui.Navigation.toggleOpen OnToggleMenu model.isMenuOpen
             ]
         }
 

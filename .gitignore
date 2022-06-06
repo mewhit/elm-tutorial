@@ -7,3 +7,4 @@ build
 .env.production
 deploy.json
 credential.txt
+open.sh
