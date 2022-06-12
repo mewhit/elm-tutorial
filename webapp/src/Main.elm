@@ -247,6 +247,7 @@ view model =
                     , excerciseThree model
                     , excerciseFour model
                     , excerciseFive model
+                    , excerciseSix model
                     , if model.signUpModal then
                         modal
                             { onClose = CloseModal
@@ -300,6 +301,11 @@ excerciseFourId =
 excerciseFiveId : UI.Id
 excerciseFiveId =
     UI.toId "5"
+
+
+excerciseSixId : UI.Id
+excerciseSixId =
+    UI.toId "6"
 
 
 navButton : UI.Id -> String -> Bool -> Html Msg
@@ -454,8 +460,39 @@ excerciseFive model =
 
         _ ->
             UI.pill "bg-yellow-600" "Waiting"
+    , navButton
+        (toScrollId excerciseSixId)
+        "Next"
+        (model.editor.editor.result |> Dict.get (UI.toString excerciseFiveId) |> Maybe.withDefault NotAsked |> RemoteData.map hasFail |> RemoteData.withDefault True)
     ]
         |> UI.page (toScrollId excerciseFiveId)
+
+
+excerciseSix : Model -> Html Msg
+excerciseSix model =
+    [ navButton (toScrollId excerciseFiveId) "Previous" False
+    , UI.Typographie.explaination []
+        (toHtml
+            [ Normal "Time to learn "
+            , HighLight "|>"
+            , Normal ", I want you to replace all parenthensis by using "
+            , HighLight "|>"
+            , Normal "with keeping the same output at the end"
+            ]
+        )
+    , Editor.view excerciseSixId model.editor |> Html.map EditorMsg
+    , case Dict.get (UI.toString excerciseSixId) model.editor.editor.result of
+        Just (Success result) ->
+            if hasFail result then
+                UI.pill "bg-red-600" "Fail"
+
+            else
+                UI.pill "bg-green-600" "Success"
+
+        _ ->
+            UI.pill "bg-yellow-600" "Waiting"
+    ]
+        |> UI.page (toScrollId excerciseSixId)
 
 
 type Explaination

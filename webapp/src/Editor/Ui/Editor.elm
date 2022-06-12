@@ -81,6 +81,18 @@ setSelection region model =
 -- INIT
 
 
+defaultExcercise : Dict String String
+defaultExcercise =
+    [ ( "1", "" )
+    , ( "2", "" )
+    , ( "3", "" )
+    , ( "4", "" )
+    , ( "5", "" )
+    , ( "6", "isNumber :  String -> Bool\nisNumber str  =\n   Maybe.withDefault False (Maybe.map toTrue) (String.toInt str))" )
+    ]
+        |> Dict.fromList
+
+
 init : Config -> String -> ( Model, Cmd Msg )
 init config source =
     let
@@ -95,7 +107,7 @@ init config source =
             -- , dependencies = Loading
             , selection = Nothing
             , result = Dict.empty
-            , sources = [] |> Dict.fromList
+            , sources = defaultExcercise
             }
     in
     case Header.parse source of
@@ -125,6 +137,7 @@ type Msg
     | OnSave String (Maybe Error.Region)
     | OnHint (Maybe String)
     | OnCompile String
+    | OnReset String
     | HandleResult String (GraphData CompileResult.CompileResult)
     | HandleResults (GraphData (List ExcerciseSolution))
       -- | GotDepsInfo (Result Http.Error Deps.Info)
@@ -161,6 +174,18 @@ update msg m status config =
             , Status.compiling status
             , submitSource source
             )
+
+        OnReset id ->
+            let
+                excercise =
+                    Dict.get id defaultExcercise
+            in
+            case excercise of
+                Just e ->
+                    ( { model | sources = Dict.insert id e model.sources }, status, Cmd.none )
+
+                Nothing ->
+                    ( model, status, Cmd.none )
 
         OnCompile id ->
             ( updateImports { model | result = Dict.remove id model.result }

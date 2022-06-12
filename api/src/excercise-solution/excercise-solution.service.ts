@@ -45,6 +45,17 @@ export class ExcerciseSolutionService {
       fs.appendFileSync(`${dirPath}/${excercise}/src/Main.elm`, solution.code);
 
       const excercisePath = `${dirPath}/${excercise}`;
+      const regexFile = `${dirPath}/${excercise}/regexp.txt`;
+
+      if (fs.existsSync(regexFile)) {
+        const regexp = fs.readFileSync(regexFile);
+        const isOk = new RegExp(regexp.toString()).test(solution.code);
+
+        if (!isOk) {
+          const error = fs.readFileSync(`${dirPath}/${excercise}/error.txt`);
+          return Either.left(error.toString());
+        }
+      }
 
       const result = this.elmService.test(excercisePath);
       const t = await this.save(solution, result);

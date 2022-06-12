@@ -17,10 +17,12 @@ import Editor.Data.Version exposing (Version)
 import Editor.Data.Window as Window exposing (Window)
 import Editor.Ui.ColumnDivider
 import Editor.Ui.Editor
+import Editor.Ui.Icon
 import Editor.Ui.Navigation
 import Editor.Ui.Package
 import Editor.Ui.Problem
 import Elm.Error as Error
+import FeatherIcons exposing (refreshCw)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (on, onClick, onMouseLeave, onMouseOver)
@@ -284,18 +286,6 @@ subscriptions model =
 
 view : UI.Id -> Model -> Html Msg
 view id_ model =
-    let
-        packageStyles =
-            if model.isPackageUiOpen then
-                if Window.isLessThan model.window Editor.Ui.Package.width then
-                    [ style "max-width" Editor.Ui.Package.widthPx, style "border" "0" ]
-
-                else
-                    [ style "max-width" Editor.Ui.Package.widthPx ]
-
-            else
-                [ style "max-width" "0", style "border" "0" ]
-    in
     main_
         [ id "main"
         , class "theme-dark"
@@ -371,6 +361,15 @@ viewNavigation id_ model =
         , left =
             [ Editor.Ui.Editor.viewHint model.editor
             , Editor.Ui.Navigation.compilation (OnEditorMsg <| Editor.Ui.Editor.OnCompile <| UI.toString id_) model.status
+            , Editor.Ui.Icon.button [ style "padding" "0 10px" ]
+                { background = Nothing
+                , icon = refreshCw
+                , iconColor = Just "blue"
+                , label = Just "Reset"
+                , labelColor = Nothing
+                , alt = "Reset"
+                , onClick = Just <| OnEditorMsg <| Editor.Ui.Editor.OnReset <| UI.toString id_
+                }
             ]
         , right =
             [ case getProblems model of
